@@ -13,9 +13,7 @@
 
 	<!-- Build the Editor and all the necessary Tools first -->
 		<Node Name="Compile" Produces="#Compiled_Binaries">
-			<ForEach Name="TargetType" Values="Client;Server">
-				<Compile Target="$(ProjectName)$(TargetType)" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
-			</ForEach>
+			<Compile Target="$(ProjectName)" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 		</Node>
 
 		<Node Name="Compile Tools" Produces="#ToolBinaries">
@@ -29,41 +27,22 @@
             <Compile Target="$(ProjectName)Editor" Platform="Win64" Configuration="Development" Tag="#EditorBinaries" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
         </Node>
 
-		<!-- Package the server -->
-		<Node Name="CookServer" RunEarly="true">
-            <Cook Project="$(TargetProject)" Platform="WindowsServer" Arguments="-manifests"/>
-        </Node>
-
-		<Property Name="StageAndPackageArguments" Value="-CrashReporter" />
-
-		<Property Name="BCRArgsServer" Value="$(BCRArgs) -target=&quot;$(ProjectName)Server&quot; -platform=Win64 -server" />
-
-		<Node Name="StageServer" >
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsServer) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
-        </Node>
-
-		<Property Name="PackageOnlyArguments" Value="-archive -archivedirectory=&quot;$(OutputRoot)/$(StagedPlatformFolder)&quot;"/>
-
-		<Node Name="PackageServer" Requires="StageServer">
-            <Command Name="BuildCookRun" Arguments="$(BCRArgs) -platform=Win64 -server -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
-        </Node>
-
 		<!-- Package the client -->
 		<Node Name="CookClient" RunEarly="true">
-            <Cook Project="$(TargetProject)" Platform="WindowsClient" Arguments="-manifests"/>
+            <Cook Project="$(TargetProject)" Platform="Windows" Arguments="-manifests"/>
         </Node>
 
-		<Property Name="BCRArgsClient" Value="$(BCRArgs) -target=&quot;$(ProjectName)Client&quot; -platform=Win64 -client" />
+		<Property Name="BCRArgsClient" Value="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=Win64" />
 
 		<Node Name="StageClient" >
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -stage -pak -iostore -prereqs" />
         </Node>
 
         <Node Name="PackageClient" Requires="StageClient">
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -skipstage -skippak -package" />
         </Node>
 
 	</Agent>
 
-	<Aggregate Name="Build All Platforms" Requires="Compile;Compile Tools;Compile Editor;CookServer;StageServer;PackageServer;CookClient;StageClient;PackageClient"/>
+	<Aggregate Name="Build All Platforms" Requires="Compile;Compile Tools;Compile Editor;CookClient;StageClient;PackageClient"/>
 </BuildGraph>
