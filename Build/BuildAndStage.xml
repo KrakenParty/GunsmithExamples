@@ -1,0 +1,69 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<Option Name="WorkspaceRoot" DefaultValue="" Description="The root directory for the workspace"/>
+	<Option Name="ProjectName" DefaultValue="GunsmithExamples" Description="Name of the project"/>
+	<Option Name="OutputRoot" DefaultValue="" Description="The root directory to stage the files"/>
+
+	<Property Name="TargetProject" Value="$(WorkspaceRoot)/$(ProjectName).uproject" />
+	<Property Name="BCRArgs" Value="-Project=&quot;$(TargetProject)&quot;" />
+	<Property Name="StagedPlatformFolder" Value="PC" />
+
+	<Agent Name="Properties Agent" Type="Compile">
+
+	<!-- Build the Editor and all the necessary Tools first -->
+		<Node Name="Compile" Produces="#Compiled_Binaries">
+			<ForEach Name="TargetType" Values="Client;Server">
+				<Compile Target="$(ProjectName)$(TargetType)" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			</ForEach>
+		</Node>
+
+		<Node Name="Compile Tools" Produces="#ToolBinaries">
+            <Compile Target="CrashReportClient" Platform="Win64" Configuration="Shipping" Tag="#ToolBinaries"/>
+            <Compile Target="CrashReportClientEditor" Platform="Win64" Configuration="Shipping" Tag="#ToolBinaries"/>
+
+            <Tag Files="$(RootDir)\Engine\Binaries\Win64\XGEControlWorker.exe" With="#ToolBinaries"/>
+        </Node>
+
+		<Node Name="Compile Editor" Requires="Compile Tools" Produces="#EditorBinaries">
+            <Compile Target="$(ProjectName)Editor" Platform="Win64" Configuration="Development" Tag="#EditorBinaries" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+        </Node>
+
+		<!-- Package the server -->
+		<Node Name="CookServer" RunEarly="true">
+            <Cook Project="$(TargetProject)" Platform="WindowsServer" Arguments="-manifests"/>
+        </Node>
+
+		<Property Name="StageAndPackageArguments" Value="-CrashReporter" />
+
+		<Property Name="BCRArgsServer" Value="$(BCRArgs) -target=&quot;$(ProjectName)Server&quot; -platform=Win64 -server" />
+
+		<Node Name="StageServer" >
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsServer) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+        </Node>
+
+		<Property Name="PackageOnlyArguments" Value="-archive -archivedirectory=&quot;$(OutputRoot)/$(StagedPlatformFolder)&quot;"/>
+
+		<Node Name="PackageServer" Requires="StageServer">
+            <Command Name="BuildCookRun" Arguments="$(BCRArgs) -platform=Win64 -server -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
+        </Node>
+
+		<!-- Package the client -->
+		<Node Name="CookClient" RunEarly="true">
+            <Cook Project="$(TargetProject)" Platform="WindowsClient" Arguments="-manifests"/>
+        </Node>
+
+		<Property Name="BCRArgsClient" Value="$(BCRArgs) -target=&quot;$(ProjectName)Client&quot; -platform=Win64 -client" />
+
+		<Node Name="StageClient" >
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+        </Node>
+
+        <Node Name="PackageClient" Requires="StageClient">
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
+        </Node>
+
+	</Agent>
+
+	<Aggregate Name="Build All Platforms" Requires="Compile;Compile Tools;Compile Editor;CookServer;StageServer;PackageServer;CookClient;StageClient;PackageClient"/>
+</BuildGraph>
