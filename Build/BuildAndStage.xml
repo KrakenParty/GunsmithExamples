@@ -7,19 +7,19 @@
 
 	<Property Name="TargetProject" Value="$(WorkspaceRoot)/$(ProjectName).uproject" />
 	<Property Name="BCRArgs" Value="-Project=&quot;$(TargetProject)&quot;" />
-	<Property Name="StagedPlatformFolder" Value="PC" />
 
 	<Agent Name="Properties Agent" Type="Compile">
 
 	<!-- Build the Editor and all the necessary Tools first -->
 		<Node Name="Compile" Produces="#Compiled_Binaries">
-			<Compile Target="$(ProjectName)" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			<Compile Target="$(ProjectName)" Platform="Win64" Configuration="Shipping" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 		</Node>
 
 		<Node Name="Compile Tools" Produces="#ToolBinaries">
             <Compile Target="CrashReportClient" Platform="Win64" Configuration="Development" Tag="#ToolBinaries"/>
             <Compile Target="CrashReportClientEditor" Platform="Win64" Configuration="Development" Tag="#ToolBinaries"/>
 			<Compile Target="ShaderCompileWorker" Platform="Win64" Configuration="Development" Tag="#ToolBinaries"/>
+			<Compile Target="UnrealPak" Platform="Win64" Configuration="Development" Tag="#ToolBinaries"/>
         </Node>
 
 		<Node Name="Compile Editor" Requires="Compile Tools" Produces="#EditorBinaries">
@@ -38,7 +38,7 @@
         </Node>
 
         <Node Name="PackageClient" Requires="StageClient">
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -skipstage -skippak -package" />
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -skipstage -skippak -package -archive -archivedirectory=&quot;$(OutputRoot)&quot;" />
         </Node>
 
 	</Agent>

@@ -509,9 +509,14 @@ void AGunsmithMoverCharacter::OnProduceMoverInput(float DeltaMs, FMoverInputCmdC
 	// Figure out intended orientation
 	CharacterInputs.OrientationIntent = CharacterInputs.ControlRotation.Vector().GetSafeNormal2D();
 
-	CharacterInputs.bIsJumpPressed = bIsJumpPressed || bIsDebugJumping;
-	CharacterInputs.bIsJumpJustPressed = bIsJumpJustPressed || bIsDebugJumping;
+	CharacterInputs.bIsJumpPressed = bIsJumpPressed;
+	CharacterInputs.bIsJumpJustPressed = bIsJumpJustPressed;
 	CharacterInputs.SuggestedMovementMode = NAME_None;
+
+#if !UE_BUILD_SHIPPING
+	CharacterInputs.bIsJumpPressed |= bIsDebugJumping;
+	CharacterInputs.bIsJumpJustPressed |= bIsDebugJumping;
+#endif
 
 	// Convert inputs to be relative to the current movement base (depending on options and state)
 	CharacterInputs.bUsingMovementBase = false;
@@ -540,7 +545,10 @@ void AGunsmithMoverCharacter::OnProduceMoverInput(float DeltaMs, FMoverInputCmdC
 	// In that case, we want most input to carry over between simulation frames.
 	{
 		bIsJumpJustPressed = false;
+
+#if !UE_BUILD_SHIPPING
 		bIsDebugJumping = false;
+#endif
 	}
 }
 
