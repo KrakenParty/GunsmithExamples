@@ -4,15 +4,20 @@
 	<Option Name="WorkspaceRoot" DefaultValue="" Description="The root directory for the workspace"/>
 	<Option Name="ProjectName" DefaultValue="GunsmithExamples" Description="Name of the project"/>
 	<Option Name="OutputRoot" DefaultValue="" Description="The root directory to stage the files"/>
+	<Option Name="BuildConfig" DefaultValue="Shipping" Description="The desired build configuration"/>
 
 	<Property Name="TargetProject" Value="$(WorkspaceRoot)/$(ProjectName).uproject" />
 	<Property Name="BCRArgs" Value="-Project=&quot;$(TargetProject)&quot;" />
 
 	<Agent Name="Properties Agent" Type="Compile">
+	<Property Name="Platforms" Value="Win64;Linux" />
+	<Property Name="CookPlatforms" Value="Windows;Linux" />
 
 	<!-- Build the Editor and all the necessary Tools first -->
 		<Node Name="Compile" Produces="#Compiled_Binaries">
-			<Compile Target="$(ProjectName)" Platform="Win64" Configuration="Shipping" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			<ForEach Name="Platform" Values="$(Platforms)">
+				<Compile Target="$(ProjectName)" Platform="$(Platform)" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			</ForEach>
 		</Node>
 
 		<Node Name="Compile Tools" Produces="#ToolBinaries">
@@ -28,18 +33,22 @@
 
 		<!-- Package the client -->
 		<Node Name="CookClient" RunEarly="true">
-            <Cook Project="$(TargetProject)" Platform="Windows" Arguments="-manifests"/>
-        </Node>
-
-		<Property Name="BCRArgsClient" Value="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=Win64" />
+			<ForEach Name="Platform" Values="$(CookPlatforms)">
+				<Cook Project="$(TargetProject)" Platform="$(Platform)" Arguments="-manifests"/>
+			</ForEach>
+		</Node>
 
 		<Node Name="StageClient" >
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -stage -pak -iostore -prereqs" />
-        </Node>
+			<ForEach Name="Platform" Values="$(Platforms)">
+				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+			</ForEach>
+		</Node>
 
-        <Node Name="PackageClient" Requires="StageClient">
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsClient) -configuration=Shipping -skipbuild -skipcook -skipstage -skippak -package -archive -archivedirectory=&quot;$(OutputRoot)&quot;" />
-        </Node>
+		<Node Name="PackageClient" Requires="StageClient">
+			<ForEach Name="Platform" Values="$(Platforms)">
+				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -skipbuild -skipcook -skipstage -skippak -package -archive -archivedirectory=&quot;$(OutputRoot)&quot;" />
+			</ForEach>
+		</Node>
 
 	</Agent>
 
