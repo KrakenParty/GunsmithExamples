@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "Game/GunsmithPlayerController.h"
 #include "GunsmithTestPlayerController.generated.h"
 
 /**
  *	A player controller used to start Gunsmith test scenarios
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithTestPlayerController : public APlayerController
+class GUNSMITHEXAMPLES_API AGunsmithTestPlayerController : public AGunsmithPlayerController
 {
 	GENERATED_BODY()
 	

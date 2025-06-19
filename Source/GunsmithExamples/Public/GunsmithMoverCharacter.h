@@ -158,7 +158,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> ReloadAction = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> NextWeaponAction = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> PreviousWeaponAction = nullptr;
+	
 	// A list of input actions which when activated, will activate the related equipment slot
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TArray<TObjectPtr<UInputAction>> EquipmentSlotActions;
@@ -323,7 +329,12 @@ private:
 	void OnJumpStarted(const FInputActionValue& Value);
 	void OnJumpReleased(const FInputActionValue& Value);
 	void OnReloadPressed(const FInputActionValue& Value);
+	void OnNextWeaponPressed(const FInputActionValue& Value);
+	void OnPreviousWeaponPressed(const FInputActionValue& Value);
 	void OnEquipmentSlotPressed(const FInputActionValue& Value, int32 Slot);
+
+	// Change the active weapon to the slot in input direction
+	void ChangeWeapon(int32 Direction);
 
 	virtual FRotator GetAuthoritativeAimRotation() const;
 

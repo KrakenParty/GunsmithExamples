@@ -30,4 +30,8 @@ public:
 	// Returns a value between 0 and Time base on the TimeSinceSimulationStarted value
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Simulation", meta = (BlueprintThreadSafe, WorldContext="WorldContextObject"))
 	static float GetRemainderBaseOnTimeSinceSimulationStarted(UObject* WorldContextObject, float Time);
+
+	// Get the root focus widget at the top of the tree via UWidget->GetDesiredFocusWidget
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+	static UWidget* GetRootFocusWidget(UWidget* Widget);
 };

@@ -21,6 +21,9 @@ public:
 	virtual void PostInitializeComponents() override;
 	// AGunsmithHUD End
 
+	UFUNCTION(BlueprintCallable, Category="Gunsmith")
+	UGunsmithMultiplayerHUDWidget* GetMultiplayerHUDWidget() const { return MultiplayerHUDWidget; }
+
 protected:
 	// The subclass of HUD widget to spawn for the multiplayer game mode
 	UPROPERTY(EditDefaultsOnly)

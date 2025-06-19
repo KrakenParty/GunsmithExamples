@@ -7,6 +7,9 @@
 #include "GunsmithHUD.generated.h"
 
 class UGunsmithHUDWidget;
+class UGunsmithPauseMenuWidget;
+class UWidget;
+
 /**
  *	The base HUD class for the Gunsmith Samples Project
  */
@@ -21,7 +24,11 @@ public:
 	// AActor End
 
 	// Get the main Gunsmith HUD widget
+	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	UGunsmithHUDWidget* GetHUDWidget() const { return HUDWidget; }
+
+	// Sets the HUD to the paused state. Returns a focus widget if one exists
+	UWidget* SetPaused(bool bPaused) const;
 	
 protected:
 	// The subclass of HUD widget to spawn
@@ -31,6 +38,14 @@ protected:
 	// A pointer to the spawned HUD widget
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UGunsmithHUDWidget> HUDWidget = nullptr;
+
+	// The subclass of pause menu widget to spawn
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGunsmithPauseMenuWidget> PauseMenuWidgetType = nullptr;
+
+	// A pointer to the spawned pause menu widget
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UGunsmithPauseMenuWidget> PauseMenuWidget = nullptr;
 
 	// Bind new events if the possessed pawn changes
 	UFUNCTION()

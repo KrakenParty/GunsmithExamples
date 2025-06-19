@@ -388,6 +388,10 @@
 		{
 			"Name": "NetworkPredictionExtras",
 			"Enabled": false
+		},
+		{
+			"Name": "SteamSockets",
+			"Enabled": true
 		}
 	]
 }

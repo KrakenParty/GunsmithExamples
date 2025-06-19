@@ -4,6 +4,8 @@
 
 #include "EngineUtils.h"
 #include "GSGameplayLibrary.h"
+#include "Online.h"
+#include "OnlineSessionSettings.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Game/GunsmithMultiplayerGameState.h"
@@ -12,8 +14,47 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
 #include "Health/GSHealthComponent.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapon/GSShootingComponent.h"
+
+FName AGunsmithMultiplayerGameMode::SessionName = "GunsmithSession";
+FName AGunsmithMultiplayerGameMode::SearchParam = "IDParam";
+
+void AGunsmithMultiplayerGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	FOnlineSessionSettings Settings;
+	Settings.NumPublicConnections = 4;
+	Settings.bUsesPresence = true;
+	Settings.bUseLobbiesIfAvailable = true;
+	Settings.bAllowInvites = true;
+	Settings.bAllowJoinViaPresence = true;
+	Settings.bShouldAdvertise = true;
+
+	// Generate a hopefully unique room code
+	constexpr int32 RoomCodeLength = 5;
+	FGuid RoomGuid = FGuid::NewGuid();
+	FString RoomCode = RoomGuid.ToString().Mid(0, RoomCodeLength);
+	
+	Settings.Settings.Emplace(SearchParam, FOnlineSessionSetting(RoomCode, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing));
+
+	if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
+	{
+		SessionInterface->CreateSession(0, SessionName, Settings);
+	}
+}
+
+void AGunsmithMultiplayerGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
+	{
+		SessionInterface->DestroySession(SessionName);
+	}
+}
 
 void AGunsmithMultiplayerGameMode::PostLogin(APlayerController* NewPlayer)
 {

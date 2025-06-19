@@ -29,6 +29,8 @@ protected:
 	// The text display widget to display current game state to players
 	UPROPERTY(EditDefaultsOnly, Category="Multiplayer Widget", meta=(BindWidget))
 	TObjectPtr<UGunsmithTextDisplayWidget> TextDisplayWidget;
+
+	
 	
 private:
 	bool bIsLobbyOwner = false;

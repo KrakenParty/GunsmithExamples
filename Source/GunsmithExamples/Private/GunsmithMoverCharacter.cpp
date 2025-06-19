@@ -52,20 +52,20 @@ static FAutoConsoleVariableRef CVarInvertMouseY(
 DEFINE_LOG_CATEGORY_STATIC(LogGunsmithMoverCharacter, Log, All);
 
 // ReSharper disable CppDeclaratorNeverUsed
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Impact_Character, "Weapon.Impact.Character");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Impact_Character, "Weapon.Impact.Character");
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Rifle, "Weapon.Tag.Rifle");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Rifle_Alternate, "Weapon.Tag.Rifle.Alternate");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Rifle_Premium, "Weapon.Tag.Rifle.Premium");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Pistol, "Weapon.Tag.Pistol");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Shotgun, "Weapon.Tag.Shotgun");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle, "Weapon.Tag.Rifle");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Alternate, "Weapon.Tag.Rifle.Alternate");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Premium, "Weapon.Tag.Rifle.Premium");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Pistol, "Weapon.Tag.Pistol");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Shotgun, "Weapon.Tag.Shotgun");
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Attachment_Scope, "Weapon.Attachment.Scope.Default");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Attachment_Silencer, "Weapon.Attachment.Silencer.Default");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Attachment_Magazine, "Weapon.Attachment.Magazine.Default");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Scope, "Weapon.Attachment.Scope.Default");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Silencer, "Weapon.Attachment.Silencer.Default");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Magazine, "Weapon.Attachment.Magazine.Default");
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Projectile, "Weapon.Emitter.Projectile.Default");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithSamples_Weapon_Projectile_Small, "Weapon.Emitter.Projectile.Small");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile, "Weapon.Emitter.Projectile.Default");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Small, "Weapon.Emitter.Projectile.Small");
 // ReSharper restore CppDeclaratorNeverUsed
 
 #if !UE_BUILD_SHIPPING
@@ -278,14 +278,24 @@ void AGunsmithMoverCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 		if (ReloadAction)
 		{
-			Input->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AGunsmithMoverCharacter::OnReloadPressed);
+			Input->BindAction(ReloadAction, ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnReloadPressed);
+		}
+
+		if (NextWeaponAction)
+		{
+			Input->BindAction(NextWeaponAction, ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnNextWeaponPressed);
+		}
+
+		if (PreviousWeaponAction)
+		{
+			Input->BindAction(PreviousWeaponAction, ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnNextWeaponPressed);
 		}
 
 		for (int32 i = 0; i < EquipmentSlotActions.Num(); i++)
 		{
 			if (EquipmentSlotActions[i])
 			{
-				Input->BindAction(EquipmentSlotActions[i], ETriggerEvent::Triggered, this, &AGunsmithMoverCharacter::OnEquipmentSlotPressed, i);
+				Input->BindAction(EquipmentSlotActions[i], ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnEquipmentSlotPressed, i);
 			}
 		}
 	}
@@ -607,11 +617,42 @@ void AGunsmithMoverCharacter::OnReloadPressed(const FInputActionValue& Value)
 	TriggerReload();
 }
 
+void AGunsmithMoverCharacter::OnNextWeaponPressed(const FInputActionValue& Value)
+{
+	ChangeWeapon(1);
+}
+
+void AGunsmithMoverCharacter::OnPreviousWeaponPressed(const FInputActionValue& Value)
+{
+	ChangeWeapon(-1);
+}
+
 void AGunsmithMoverCharacter::OnEquipmentSlotPressed(const FInputActionValue& Value, int32 Slot)
 {
 	if (ShootingComponent->HasEquippedWeapon(Slot))
 	{
 		CurrentWeaponSlot = Slot;	
+	}
+}
+
+void AGunsmithMoverCharacter::ChangeWeapon(int32 Direction)
+{
+	if (ShootingComponent)
+	{
+		const int32 ActiveWeaponSlot = ShootingComponent->GetActiveWeaponSlot();
+		int32 NextWeaponSlot = ActiveWeaponSlot + Direction;
+
+		const int32 MaxSlots = ShootingComponent->GetNumMaxWeaponSlots();
+		if (NextWeaponSlot < 0)
+		{
+			NextWeaponSlot = MaxSlots - 1;
+		}
+		else if (NextWeaponSlot >= MaxSlots)
+		{
+			NextWeaponSlot = 0;
+		}
+
+		CurrentWeaponSlot = NextWeaponSlot;
 	}
 }
 

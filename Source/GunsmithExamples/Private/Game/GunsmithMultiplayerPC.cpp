@@ -7,6 +7,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Net/Core/PushModel/PushModel.h"
 #include "Netcode/GSNetworkLibrary.h"
+#include "UI/GunsmithMultiplayerHUD.h"
+#include "UI/GunsmithMultiplayerHUDWidget.h"
 
 void AGunsmithMultiplayerPC::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -20,6 +22,8 @@ void AGunsmithMultiplayerPC::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 void AGunsmithMultiplayerPC::StartGame()
 {
 	Server_StartGame();
+
+	SetUIInputMode(false);
 }
 
 void AGunsmithMultiplayerPC::SetLobbyOwner(bool bLobbyOwner)
@@ -41,8 +45,24 @@ void AGunsmithMultiplayerPC::SetLobbyOwner(bool bLobbyOwner)
 	OnRep_bIsLobbyOwner();
 }
 
-void AGunsmithMultiplayerPC::OnRep_bIsLobbyOwner() const
+void AGunsmithMultiplayerPC::OnRep_bIsLobbyOwner()
 {
+	if (bIsLobbyOwner)
+	{
+		if (AGunsmithMultiplayerHUD* HUD = GetHUD<AGunsmithMultiplayerHUD>())
+		{
+			if (UGunsmithMultiplayerHUDWidget* HUDWidget = HUD->GetMultiplayerHUDWidget())
+			{
+				UWidget* FocusWidget = HUDWidget->GetDesiredFocusWidget();
+				SetUIInputMode(true, FocusWidget);
+			}
+		}
+	}
+	else
+	{
+		SetUIInputMode(false);
+	}
+	
 	OnLobbyOwnershipChanged.Broadcast(bIsLobbyOwner);
 }
 

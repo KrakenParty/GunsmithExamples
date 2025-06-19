@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "GunsmithPlayerController.h"
 #include "GunsmithMultiplayerPC.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FGunsmithLobbyOwnershipChangedDelegate, bool bIsOwner);
@@ -12,7 +12,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FGunsmithLobbyOwnershipChangedDelegate, bool
  *	A custom player controller used in the multiplayer game mode for lobby ownership
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithMultiplayerPC : public APlayerController
+class GUNSMITHEXAMPLES_API AGunsmithMultiplayerPC : public AGunsmithPlayerController
 {
 	GENERATED_BODY()
 	
@@ -34,7 +34,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnRep_bIsLobbyOwner() const;
+	void OnRep_bIsLobbyOwner();
 
 	UFUNCTION(Server, Reliable)
 	void Server_StartGame();

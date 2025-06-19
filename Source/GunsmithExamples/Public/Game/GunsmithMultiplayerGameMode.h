@@ -19,6 +19,10 @@ class GUNSMITHEXAMPLES_API AGunsmithMultiplayerGameMode : public AGunsmithGameMo
 {
 	GENERATED_BODY()
 
+public:
+	static FName SessionName;
+	static FName SearchParam;
+	
 protected:
 	// How long to wait before spawning a character after death
 	UPROPERTY(EditDefaultsOnly, Category = "Mode", meta=(ClampMin="0.0"))
@@ -37,6 +41,8 @@ protected:
 	int32 NumAttachments = 2;
 
 	// AGunsmithGameMode Begin
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 

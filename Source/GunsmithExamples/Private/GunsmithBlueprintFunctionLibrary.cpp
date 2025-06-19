@@ -4,6 +4,7 @@
 
 #include "MoverComponent.h"
 #include "NetworkPredictionWorldManager.h"
+#include "Blueprint/UserWidget.h"
 #include "Character/GSMoverComponent.h"
 #include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
 #include "GameFramework/PlayerController.h"
@@ -43,4 +44,28 @@ float UGunsmithBlueprintFunctionLibrary::GetRemainderBaseOnTimeSinceSimulationSt
 	}
 
 	return 0.0f;
+}
+
+UWidget* UGunsmithBlueprintFunctionLibrary::GetRootFocusWidget(UWidget* Widget)
+{
+	while (true)
+	{
+		UUserWidget* UserWidgetToFocus = Cast<UUserWidget>(Widget);
+
+		if (!UserWidgetToFocus)
+		{
+			break;
+		}
+
+		UWidget* NewFocusWidget = UserWidgetToFocus->GetDesiredFocusWidget();
+
+		if (!NewFocusWidget)
+		{
+			break;
+		}
+
+		Widget = NewFocusWidget;
+	}
+
+	return Widget;
 }
