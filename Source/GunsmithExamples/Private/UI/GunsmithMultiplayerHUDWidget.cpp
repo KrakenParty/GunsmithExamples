@@ -2,9 +2,10 @@
 
 #include "UI/GunsmithMultiplayerHUDWidget.h"
 
-#include "Game/GunsmithMultiplayerGameState.h"
-#include "Game/GunsmithMultiplayerPC.h"
+#include "Game/Modes/Multiplayer/GunsmithMultiplayerGameState.h"
+#include "Game/Modes/Multiplayer/GunsmithMultiplayerPC.h"
 #include "GameFramework/GameMode.h"
+#include "UI/GunsmithActivatableWidget.h"
 #include "UI/GunsmithTextDisplayWidget.h"
 #include "Weapon/Attachment/GSWeaponAttachment.h"
 
@@ -27,6 +28,8 @@ bool UGunsmithMultiplayerHUDWidget::Initialize()
 	{
 		World->GameStateSetEvent.AddUObject(this, &UGunsmithMultiplayerHUDWidget::OnGameStateSet);
 	}
+
+	LobbyOwnerWidget->Hide();
 	
 	return bIsInitialized;
 }
@@ -100,5 +103,12 @@ void UGunsmithMultiplayerHUDWidget::UpdateLobbyOwnerWidgetVisibility() const
 {
 	const bool bShouldShow = bIsLobbyOwner && bIsInPreMatchState;
 
-	LobbyOwnerWidget->SetVisibility(bShouldShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	if (bShouldShow)
+	{
+		LobbyOwnerWidget->Activate();
+	}
+	else if (LobbyOwnerWidget->GetIsActive())
+	{
+		LobbyOwnerWidget->Deactivate();
+	}
 }

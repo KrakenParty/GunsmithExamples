@@ -7,7 +7,7 @@
 #include "Online.h"
 #include "OnlineSessionSettings.h"
 #include "Components/TextBlock.h"
-#include "Game/GunsmithMultiplayerGameMode.h"
+#include "Game/Modes/Multiplayer/GunsmithMultiplayerGameMode.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"

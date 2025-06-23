@@ -386,7 +386,6 @@ void AGunsmithMoverCharacter::NotifyRestarted()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			EnhancedInputSubsystem->ClearAllMappings();
 			EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
@@ -843,6 +842,8 @@ void AGunsmithMoverCharacter::DrawCurrentLocationDebug(bool bRoundToFullFrame, c
 void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted)
 {
 	bIsDead = true;
+
+	ShootingComponent->SetIsShootingDisabled(true);
 	
 	if (RagdollImpulseBone.IsValid() && Mesh)
 	{

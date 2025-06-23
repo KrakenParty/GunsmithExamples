@@ -7,7 +7,7 @@
 #include "Online.h"
 #include "OnlineSessionSettings.h"
 #include "Components/EditableText.h"
-#include "Game/GunsmithMultiplayerGameMode.h"
+#include "Game/Modes/Multiplayer/GunsmithMultiplayerGameMode.h"
 #include "Interfaces/OnlineSessionInterface.h"
 
 void UGunsmithConnectionInfoWidget::NativeOnInitialized()

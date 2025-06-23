@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GunsmithMultiplayerHUDWidget.generated.h"
 
+class UGunsmithActivatableWidget;
 class UGunsmithTextDisplayWidget;
 struct FGSEquipData;
 
@@ -24,7 +25,7 @@ protected:
 
 	// The widget that displays for lobby owners to start the match
 	UPROPERTY(EditDefaultsOnly, Category="Multiplayer Widget", meta=(BindWidget))
-	TObjectPtr<UUserWidget> LobbyOwnerWidget;
+	TObjectPtr<UGunsmithActivatableWidget> LobbyOwnerWidget;
 
 	// The text display widget to display current game state to players
 	UPROPERTY(EditDefaultsOnly, Category="Multiplayer Widget", meta=(BindWidget))

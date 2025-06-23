@@ -11,8 +11,6 @@
 #include "GameFramework/InputDeviceSubsystem.h"
 #include "UI/GunsmithHUD.h"
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_InputMode_UI, "EnhancedInput.Modes.UI")
-
 void AGunsmithPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -20,6 +18,7 @@ void AGunsmithPlayerController::BeginPlay()
 	if (UInputDeviceSubsystem* InputDeviceSubsystem = GEngine->GetEngineSubsystem<UInputDeviceSubsystem>())
 	{
 		InputDeviceSubsystem->OnInputHardwareDeviceChanged.AddDynamic(this, &AGunsmithPlayerController::OnHardwareDeviceChanged);
+		OnHardwareDeviceChanged(GetPlatformUserId(), FInputDeviceId());
 	}
 }
 
@@ -27,32 +26,48 @@ void AGunsmithPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	if (UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(InputComponent))
+	if (CommonInputs)
 	{
-		if (PauseInputAction)
+		UGunsmithCommonInputs* CommonInputObject = CommonInputs->GetDefaultObject<UGunsmithCommonInputs>();
+		if (CommonInputObject->UIInputMappingContext)
 		{
-			Input->BindAction(PauseInputAction, ETriggerEvent::Started, this, &AGunsmithPlayerController::OnPausePressed);
+			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+			{
+				EnhancedInputSubsystem->AddMappingContext(CommonInputObject->UIInputMappingContext, 0);
+			}
+		}
+		
+		if (UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(InputComponent))
+		{
+			if (CommonInputObject->PauseInputAction)
+			{
+				Input->BindAction(CommonInputObject->PauseInputAction, ETriggerEvent::Started, this, &AGunsmithPlayerController::OnPausePressed);
+			}
+
+			if (CommonInputObject->CancelUIInputAction)
+			{
+				Input->BindAction(CommonInputObject->CancelUIInputAction, ETriggerEvent::Started, this, &AGunsmithPlayerController::OnCancelPressed);
+			}
 		}
 	}
 }
 
 bool AGunsmithPlayerController::ShouldShowMouseCursor() const
 {
-	return bIsPaused && !bWasLastUsingGamepad;
+	if (AGunsmithHUD* GunsmithHUD = GetHUD<AGunsmithHUD>())
+	{
+		return GunsmithHUD->HasAnyActiveWidgets() && !bWasLastUsingGamepad;
+	}
+
+	return false;
 }
 
 void AGunsmithPlayerController::SetPaused(bool bPaused)
-{
-	bIsPaused = bPaused;
-
-	UWidget* WidgetToFocus = nullptr;
-	
+{	
 	if (AGunsmithHUD* GunsmithHUD = GetHUD<AGunsmithHUD>())
 	{
-		WidgetToFocus = GunsmithHUD->SetPaused(bIsPaused);
+		GunsmithHUD->SetPaused(!GunsmithHUD->HasAnyActiveWidgets());
 	}
-
-	SetUIInputMode(bIsPaused, WidgetToFocus);
 }
 
 void AGunsmithPlayerController::SetUIInputMode(bool bEnabled, UWidget* WidgetToFocus)
@@ -85,7 +100,18 @@ void AGunsmithPlayerController::SetUIInputMode(bool bEnabled, UWidget* WidgetToF
 
 void AGunsmithPlayerController::OnPausePressed(const FInputActionValue& Value)
 {
-	SetPaused(!bIsPaused);
+	if (AGunsmithHUD* GunsmithHUD = GetHUD<AGunsmithHUD>())
+	{
+		SetPaused(GunsmithHUD->HasAnyActiveWidgets());
+	}
+}
+
+void AGunsmithPlayerController::OnCancelPressed(const FInputActionValue& Value)
+{
+	if (AGunsmithHUD* GunsmithHUD = GetHUD<AGunsmithHUD>())
+	{
+		GunsmithHUD->DeactivateTopWidget();
+	}
 }
 
 void AGunsmithPlayerController::OnHardwareDeviceChanged(const FPlatformUserId UserId, const FInputDeviceId DeviceId)
@@ -95,7 +121,13 @@ void AGunsmithPlayerController::OnHardwareDeviceChanged(const FPlatformUserId Us
 		if (UInputDeviceSubsystem* InputDeviceSubsystem = GEngine->GetEngineSubsystem<UInputDeviceSubsystem>())
 		{
 			const FHardwareDeviceIdentifier& MostRecentDevice = InputDeviceSubsystem->GetMostRecentlyUsedHardwareDevice(GetPlatformUserId());
-			bWasLastUsingGamepad = MostRecentDevice.PrimaryDeviceType == EHardwareDevicePrimaryType::Gamepad;
+			const bool bIsUsingGamepad = MostRecentDevice.PrimaryDeviceType == EHardwareDevicePrimaryType::Gamepad;
+
+			if (bIsUsingGamepad != bWasLastUsingGamepad)
+			{
+				bWasLastUsingGamepad = bIsUsingGamepad;
+				OnDeviceChanged.Broadcast(bWasLastUsingGamepad);
+			}
 		}
 	}
 }
