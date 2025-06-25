@@ -18,6 +18,13 @@ class GUNSMITHEXAMPLES_API UGunsmithMultiplayerHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	// Displays the new equipment loadout in the text field
+	void SetEquipmentText(const FGSEquipData& NewEquipData) const;
+
+	// Called to show or hide the ownership widget depending on game state
+	void UpdateLobbyOwnerWidgetVisibility(bool bShow) const;
+	
 protected:
 	// UUserWidget Begin
 	virtual bool Initialize() override;
@@ -30,18 +37,4 @@ protected:
 	// The text display widget to display current game state to players
 	UPROPERTY(EditDefaultsOnly, Category="Multiplayer Widget", meta=(BindWidget))
 	TObjectPtr<UGunsmithTextDisplayWidget> TextDisplayWidget;
-
-	
-	
-private:
-	bool bIsLobbyOwner = false;
-	bool bIsInPreMatchState = false;
-	
-	void OnLobbyOwnershipChanged(bool bIsOwner);
-	void OnMatchStateChanged(FName NewState);
-	void OnGameStateSet(AGameStateBase* GameStateBase);
-	void OnGameStateEquipmentChanged(const FGSEquipData& NewEquipData);
-
-	// Called to show or hide the ownership widget depending on game state
-	void UpdateLobbyOwnerWidgetVisibility() const;
 };

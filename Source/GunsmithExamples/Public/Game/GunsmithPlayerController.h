@@ -45,6 +45,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual bool ShouldShowMouseCursor() const override;
+	virtual ASpectatorPawn* SpawnSpectatorPawn() override;
+	virtual void SetInitialLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// APlayerController End
 
 	FGunsmithDeviceChangedDelegate OnDeviceChanged;
@@ -64,6 +67,9 @@ protected:
 	TSubclassOf<UGunsmithCommonInputs> CommonInputs = nullptr;
 
 private:
+	UPROPERTY(Replicated)
+	FRotator SpawnRotation;
+	
 	bool bWasLastUsingGamepad = true;
 	
 	void OnPausePressed(const FInputActionValue& Value);

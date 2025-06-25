@@ -5,4 +5,6 @@
 AGunsmithSpectatorPawn::AGunsmithSpectatorPawn()
 {
 	bAddDefaultMovementBindings = false;
+	bUseControllerRotationYaw = true;
+	AIControllerClass = nullptr;
 }

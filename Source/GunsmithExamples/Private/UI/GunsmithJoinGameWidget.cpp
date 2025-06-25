@@ -44,9 +44,8 @@ void UGunsmithJoinGameWidget::TravelToDestination()
 	FString ConnectionString = DestinationTextWidget->GetText().ToString();
 	ConnectionString = ConnectionString.TrimStartAndEnd();
 
-	IOnlineIdentityPtr IdentityInterface = Online::GetIdentityInterface();
 	IOnlineSessionPtr SessionInterface = Online::GetSessionInterface();
-	if (IdentityInterface && SessionInterface)
+	if (SessionInterface)
 	{
 		SearchSettings = MakeShared<FOnlineSessionSearch>();
 		SearchSettings->QuerySettings.Set(AGunsmithMultiplayerGameMode::SearchParam, ConnectionString, EOnlineComparisonOp::Equals);
@@ -71,16 +70,19 @@ void UGunsmithJoinGameWidget::TravelToDestination()
 
 void UGunsmithJoinGameWidget::SetInfoString(const FString& NewText, bool bIsError) const
 {
-	ErrorTextWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-	ErrorTextWidget->SetColorAndOpacity(bIsError ? FColor::Red : FColor::White);
-	ErrorTextWidget->SetText(FText::FromString(NewText));
+	if (ErrorTextWidget)
+	{
+		ErrorTextWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ErrorTextWidget->SetColorAndOpacity(bIsError ? FColor::Red : FColor::White);
+		ErrorTextWidget->SetText(FText::FromString(NewText));
+	}
 }
 
 void UGunsmithJoinGameWidget::OnSearchFinished(bool bSuccess)
 {
 	bIsSearchActive = false;
 	
-	if (bSuccess)
+	if (bSuccess && SearchSettings)
 	{
 		bool bHasValidSession = false;
 		if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())

@@ -9,12 +9,19 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
 #include "GameFramework/InputDeviceSubsystem.h"
+#include "Net/UnrealNetwork.h"
+#include "Net/Core/PushModel/PushModel.h"
+#include "Netcode/GSNetworkLibrary.h"
 #include "UI/GunsmithHUD.h"
 
 void AGunsmithPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set the default input mode
+	FInputModeGameOnly GameMode;
+	SetInputMode(GameMode);
+	
 	if (UInputDeviceSubsystem* InputDeviceSubsystem = GEngine->GetEngineSubsystem<UInputDeviceSubsystem>())
 	{
 		InputDeviceSubsystem->OnInputHardwareDeviceChanged.AddDynamic(this, &AGunsmithPlayerController::OnHardwareDeviceChanged);
@@ -60,6 +67,37 @@ bool AGunsmithPlayerController::ShouldShowMouseCursor() const
 	}
 
 	return false;
+}
+
+ASpectatorPawn* AGunsmithPlayerController::SpawnSpectatorPawn()
+{
+	// Server is spawned with the correct rotation, client never receives this as ControlRotation is not replicated
+	if (GetWorld()->IsNetMode(NM_Client))
+	{
+		SetControlRotation(SpawnRotation);
+	}
+	
+	return Super::SpawnSpectatorPawn();
+}
+
+void AGunsmithPlayerController::SetInitialLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation)
+{
+	Super::SetInitialLocationAndRotation(NewLocation, NewRotation);
+
+	if (UGSNetworkLibrary::IsServer(this))
+	{
+		COMPARE_ASSIGN_AND_MARK_PROPERTY_DIRTY(AGunsmithPlayerController, SpawnRotation, GetControlRotation(), this);
+	}
+}
+
+void AGunsmithPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	FDoRepLifetimeParams Params;
+	Params.bIsPushBased = true;
+	Params.Condition = COND_OwnerOnly;
+	DOREPLIFETIME_WITH_PARAMS_FAST(AGunsmithPlayerController, SpawnRotation, Params);
 }
 
 void AGunsmithPlayerController::SetPaused(bool bPaused)

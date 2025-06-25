@@ -21,17 +21,23 @@
 FName AGunsmithMultiplayerGameMode::SessionName = "GunsmithSession";
 FName AGunsmithMultiplayerGameMode::SearchParam = "IDParam";
 
+void AGunsmithMultiplayerGameMode::StartMatch()
+{
+	Super::StartMatch();
+	
+	if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
+	{
+		FOnlineSessionSettings Settings = CreateSessionSettings(false);
+		SessionInterface->UpdateSession(SessionName, Settings);
+		SessionInterface->StartSession(SessionName);
+	}
+}
+
 void AGunsmithMultiplayerGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FOnlineSessionSettings Settings;
-	Settings.NumPublicConnections = 4;
-	Settings.bUsesPresence = true;
-	Settings.bUseLobbiesIfAvailable = true;
-	Settings.bAllowInvites = true;
-	Settings.bAllowJoinViaPresence = true;
-	Settings.bShouldAdvertise = true;
+	FOnlineSessionSettings Settings = CreateSessionSettings(true);
 
 	// Generate a hopefully unique room code
 	constexpr int32 RoomCodeLength = 5;
@@ -235,4 +241,21 @@ void AGunsmithMultiplayerGameMode::RestartRound()
 			}
 		}
 	}
+}
+
+FOnlineSessionSettings AGunsmithMultiplayerGameMode::CreateSessionSettings(bool bAllowInvites)
+{
+	FOnlineSessionSettings Settings;
+	Settings.bUseLobbiesIfAvailable = true;
+	Settings.NumPublicConnections = 4;
+
+	if (bAllowInvites)
+	{
+		Settings.bUsesPresence = true;
+		Settings.bAllowInvites = true;
+		Settings.bAllowJoinViaPresence = true;
+		Settings.bShouldAdvertise = true;
+	}
+
+	return Settings;
 }

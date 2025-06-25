@@ -10,6 +10,7 @@ class AGunsmithMultiplayerPC;
 class UGSWeaponDataAsset;
 class UGSWeaponAttachment;
 class APlayerStart;
+class FOnlineSessionSettings;
 
 /**
  *	A Gunsmith game mode created to test core Gunsmith features in a multiplayer environment
@@ -49,6 +50,7 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual bool ShouldSpawnAtStartSpot(AController* Player) override;
 	virtual void HandleMatchHasStarted() override;
+	virtual void StartMatch() override;
 	virtual bool ReadyToStartMatch_Implementation() override;
 	virtual void OnPawnDeath(UGSHealthComponent* HealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted) override;
 	// AGunsmithGameMode End
@@ -59,4 +61,6 @@ private:
 	
 	// Reset all player states for a new round start
 	void RestartRound();
+
+	static FOnlineSessionSettings CreateSessionSettings(bool bAllowInvites);
 };

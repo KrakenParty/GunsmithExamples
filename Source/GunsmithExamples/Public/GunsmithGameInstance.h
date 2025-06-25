@@ -22,5 +22,6 @@ public:
 	// UGameInstance End
 
 private:
+	void OnSessionInviteAccepted(const bool bWasSuccessful, const int32 ControllerId, FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult);
 	void OnJoinFinished(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 };

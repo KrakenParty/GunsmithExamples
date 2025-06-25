@@ -3,62 +3,12 @@
 #include "UI/GunsmithMultiplayerHUDWidget.h"
 
 #include "Game/Modes/Multiplayer/GunsmithMultiplayerGameState.h"
-#include "Game/Modes/Multiplayer/GunsmithMultiplayerPC.h"
 #include "GameFramework/GameMode.h"
 #include "UI/GunsmithActivatableWidget.h"
 #include "UI/GunsmithTextDisplayWidget.h"
 #include "Weapon/Attachment/GSWeaponAttachment.h"
 
-bool UGunsmithMultiplayerHUDWidget::Initialize()
-{
-	bool bIsInitialized = Super::Initialize();
-	
-	if (AGunsmithMultiplayerPC* Controller = Cast<AGunsmithMultiplayerPC>(GetOwningPlayer()))
-	{
-		Controller->OnLobbyOwnershipChanged.AddUObject(this, &UGunsmithMultiplayerHUDWidget::OnLobbyOwnershipChanged);
-		OnLobbyOwnershipChanged(Controller->GetIsLobbyOwner());
-	}
-
-	UWorld* World = GetWorld();
-	if (AGunsmithMultiplayerGameState* GameState =  World->GetGameState<AGunsmithMultiplayerGameState>())
-	{
-		OnGameStateSet(GameState);
-	}
-	else
-	{
-		World->GameStateSetEvent.AddUObject(this, &UGunsmithMultiplayerHUDWidget::OnGameStateSet);
-	}
-
-	LobbyOwnerWidget->Hide();
-	
-	return bIsInitialized;
-}
-
-void UGunsmithMultiplayerHUDWidget::OnLobbyOwnershipChanged(bool bIsOwner)
-{
-	bIsLobbyOwner = bIsOwner;
-
-	UpdateLobbyOwnerWidgetVisibility();
-}
-
-void UGunsmithMultiplayerHUDWidget::OnMatchStateChanged(FName NewState)
-{
-	bIsInPreMatchState = NewState == MatchState::WaitingToStart;
-	
-	UpdateLobbyOwnerWidgetVisibility();
-}
-
-void UGunsmithMultiplayerHUDWidget::OnGameStateSet(AGameStateBase* GameStateBase)
-{
-	if (AGunsmithMultiplayerGameState* GameState =  Cast<AGunsmithMultiplayerGameState>(GameStateBase))
-	{
-		GameState->OnStateChangedDelegate.AddUObject(this, &UGunsmithMultiplayerHUDWidget::OnMatchStateChanged);
-		GameState->OnEquipmentChangedDelegate.AddUObject(this, &UGunsmithMultiplayerHUDWidget::OnGameStateEquipmentChanged);
-		OnMatchStateChanged(GameState->GetMatchState());
-	}
-}
-
-void UGunsmithMultiplayerHUDWidget::OnGameStateEquipmentChanged(const FGSEquipData& NewEquipData)
+void UGunsmithMultiplayerHUDWidget::SetEquipmentText(const FGSEquipData& NewEquipData) const
 {
 	if (TextDisplayWidget)
 	{
@@ -99,11 +49,18 @@ void UGunsmithMultiplayerHUDWidget::OnGameStateEquipmentChanged(const FGSEquipDa
 	}
 }
 
-void UGunsmithMultiplayerHUDWidget::UpdateLobbyOwnerWidgetVisibility() const
+bool UGunsmithMultiplayerHUDWidget::Initialize()
 {
-	const bool bShouldShow = bIsLobbyOwner && bIsInPreMatchState;
+	bool bIsInitialized = Super::Initialize();
 
-	if (bShouldShow)
+	LobbyOwnerWidget->Hide();
+	
+	return bIsInitialized;
+}
+
+void UGunsmithMultiplayerHUDWidget::UpdateLobbyOwnerWidgetVisibility(bool bShow) const
+{
+	if (bShow)
 	{
 		LobbyOwnerWidget->Activate();
 	}
