@@ -31,7 +31,7 @@ void AGunsmithPickupActor::BeginPlay()
 	// Initialise the WeaponMesh with the EquipData
 	if (EquipData.WeaponData)
 	{
-		WeaponMesh->Init(EquipData.WeaponData, EquipData.Skin, EquipData.GatherAttachmentTags());
+		WeaponMesh->Init(EquipData.WeaponData, EquipData.Skin, FGSEquipData::GatherAttachmentTags(EquipData.Attachments));
 	}
 }
 

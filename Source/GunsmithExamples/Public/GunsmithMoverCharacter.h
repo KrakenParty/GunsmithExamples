@@ -98,6 +98,9 @@ public:
 	// Called when the shooting component thinks the local players look input has changed (e.g recoil kickback has increased)
 	void ApplyLookInput(const FVector2D& LookInputs);
 
+	// Directly call death functionality
+	void ForceDeath();
+
 protected:
 	// IMoverInputProducerInterface Begin
 	// Entry point for input production. Do not override. To extend in derived character types, override OnProduceInput for native types or implement "Produce Input" blueprint event

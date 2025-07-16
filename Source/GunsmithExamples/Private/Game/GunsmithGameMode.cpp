@@ -9,9 +9,10 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogGSGameMode, Log, All);
 
-APawn* AGunsmithGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
+APawn* AGunsmithGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer,
+	const FTransform& SpawnTransform)
 {
-	APawn* Pawn =  Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
+	APawn* Pawn =  Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 	
 	if (UGSHealthComponent* HealthComponent = UGSGameplayLibrary::GetHealthComponentFromActor(Pawn))
 	{
@@ -19,6 +20,33 @@ APawn* AGunsmithGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPla
 	}
 	
 	return Pawn;
+}
+
+void AGunsmithGameMode::StartRespawn(AController* Controller, float Time)
+{
+	if (!Controller)
+	{
+		return;
+	}
+	
+	Controller->UnPossess();
+
+	// Instantly respawn
+	if (Time <= 0.0f)
+	{
+		RespawnPlayer(Controller, FTimerHandle());
+		return;
+	}
+	
+	// Respawn after RespawnTime seconds
+	FTimerHandle TimerHandle;
+				
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AGunsmithGameMode::RespawnPlayer, Controller, TimerHandle);
+				
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, Time, false);
+
+	PendingRespawnHandles.Emplace(TimerHandle);
 }
 
 void AGunsmithGameMode::OnPawnDeath(UGSHealthComponent* HealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted)
@@ -29,21 +57,26 @@ void AGunsmithGameMode::OnPawnDeath(UGSHealthComponent* HealthComponent, const F
 		{
 			if (AController* Controller = OwningPawn->GetController())
 			{
-				// Respawn after RespawnTime seconds
-				FTimerHandle TimerHandle;
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateWeakLambda(this, [this, Controller]()
-				{
-					if (IsValid(Controller))
-					{
-						if (Controller->GetPawn())
-						{
-							UE_LOG(LogGSGameMode, Error, TEXT("Unable to respawn Controller %s as the pawn still exists. Make sure it has been destroyed before this point."), *Controller->GetName());
-						}
-					
-						RestartPlayer(Controller);
-					}
-				}), RespawnTime, false);
+				StartRespawn(Controller, RespawnTime);
 			}
 		}
+	}
+}
+
+void AGunsmithGameMode::RespawnPlayer(AController* Controller, FTimerHandle Handle)
+{
+	if (Handle.IsValid())
+	{
+		PendingRespawnHandles.Remove(Handle);
+	}
+	
+	if (IsValid(Controller))
+	{
+		if (Controller->GetPawn())
+		{
+			UE_LOG(LogGSGameMode, Error, TEXT("Unable to respawn Controller %s as the pawn still exists. Make sure it has been destroyed before this point."), *Controller->GetName());
+		}
+					
+		RestartPlayer(Controller);
 	}
 }

@@ -121,8 +121,6 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 	ensure(CharacterMotionComponent);
 
 	HealthComponent = CreateDefaultSubobject<UGSHealthComponent>(GunsmithMoverCharacterNames::HealthComponent);
-	HealthComponent->OnDamageTaken.AddDynamic(this, &AGunsmithMoverCharacter::OnDamageTaken);
-	HealthComponent->OnDeath.AddDynamic(this, &AGunsmithMoverCharacter::OnDeath);
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
@@ -144,6 +142,9 @@ void AGunsmithMoverCharacter::BeginPlay()
 {	
 	Super::BeginPlay();
 
+	HealthComponent->OnDamageTaken.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDamageTaken);
+	HealthComponent->OnDeath.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDeath);
+	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
 	RollbackComponent->OnFinalizeFrame.AddDynamic(this, &AGunsmithMoverCharacter::OnPostFinalizeFrame);
 
@@ -327,6 +328,11 @@ void AGunsmithMoverCharacter::ApplyLookInput(const FVector2D& LookInputs)
 	LookRotation = ApplyRotation(LookRotation, LookInputs);
 
 	SetControlRotation(GetAuthoritativeAimRotation() + CurrentRecoilRotation);
+}
+
+void AGunsmithMoverCharacter::ForceDeath()
+{
+	OnDeath(nullptr, FGSDamageRecord(), false);
 }
 
 void AGunsmithMoverCharacter::OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)

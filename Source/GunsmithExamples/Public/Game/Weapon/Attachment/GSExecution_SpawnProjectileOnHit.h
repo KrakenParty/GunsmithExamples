@@ -26,9 +26,9 @@ class GUNSMITHEXAMPLES_API UGSExecution_SpawnProjectileOnHit : public UGSWeaponA
 	
 public:
 	// UGSWeaponAttachmentExecution Begin
-	virtual void Setup(UGSShootingComponent* ShootingComponent, int32 ID) override;
-	virtual void Apply(UGSShootingComponent* ShootingComponent, const FGSEquipData& CurrentWeapon, int32 Frame) override;
-	virtual void Remove(UGSShootingComponent* ShootingComponent) override;
+	virtual void Setup_Implementation(UGSShootingComponent* ShootingComponent, int32 ID) override;
+	virtual void Apply_Implementation(UGSShootingComponent* ShootingComponent, const FGSEquipData& CurrentWeapon, int32 Frame) override;
+	virtual void Remove_Implementation(UGSShootingComponent* ShootingComponent) override;
 
 	virtual UGSEmitterOutputDataAsset* GetAssociatedEmitterOutputDataAsset() const override;
 	// UGSWeaponAttachmentExecution End

@@ -16,10 +16,12 @@ class GUNSMITHEXAMPLES_API AGunsmithGameMode : public AGameMode
 	
 public:
 	// AGameModeBase Begin
-	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	// AGameModeBase End
 
 protected:
+	TArray<FTimerHandle> PendingRespawnHandles;
+
 	// If true, characters will be respawned after death
 	UPROPERTY(EditDefaultsOnly, Category = "Mode")
 	bool bShouldAutoRespawn = true;
@@ -27,9 +29,13 @@ protected:
 	// How long to wait before spawning a character after death
 	UPROPERTY(EditDefaultsOnly, Category = "Mode", meta=(EditCondition="bShouldAutoRespawn==true"))
 	float RespawnTime = 5.0f;
+
+	void StartRespawn(AController* Controller, float Time);
 	
 private:
 	// Called when a pawn dies to start the respawn timer
 	UFUNCTION()
 	virtual void OnPawnDeath(UGSHealthComponent* HealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted);
+
+	void RespawnPlayer(AController* Controller, FTimerHandle Handle);
 };

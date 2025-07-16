@@ -2,10 +2,16 @@
 
 #include "Game/Tests/GunsmithTestPlayerController.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "GSGameplayLibrary.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "Game/Tests/GunsmithGameState_Accuracy.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/DefaultValueHelper.h"
+#include "Weapon/GSShootingComponent.h"
+#include "World/GSWorldStateSubsystem.h"
 
 FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithStartAccuracyTest
 (
@@ -40,5 +46,98 @@ void AGunsmithTestPlayerController::Server_SetAutoShootIndex_Implementation(int3
 	else
 	{
 		UE_LOG(LogGunsmithTests, Log, TEXT("Unable to start test as the Game State is not derived from GunsmithGameState_Accuracy"));	
+	}
+}
+
+void AGunsmithTestPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (TestControllerMappingContext)
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			EnhancedInputSubsystem->AddMappingContext(TestControllerMappingContext, 0);
+		}
+	}
+	
+	if (UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		if (AddAttachmentInputAction)
+		{
+			Input->BindAction(AddAttachmentInputAction, ETriggerEvent::Started, this, &AGunsmithTestPlayerController::OnAddAttachmentPressed);
+		}
+
+		if (RemoveAttachmentInputAction)
+		{
+			Input->BindAction(RemoveAttachmentInputAction, ETriggerEvent::Started, this, &AGunsmithTestPlayerController::OnRemoveAttachmentPressed);
+		}
+	}
+}
+
+void AGunsmithTestPlayerController::OnAddAttachmentPressed(const FInputActionValue& Value)
+{
+	int32 Frame = -1;
+	if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
+	{
+		Frame = WorldStateSubsystem->GetCurrentSimulationFrameIndex().ServerFrame;
+	}
+
+	Server_AddAttachment_Implementation(Frame);
+
+	if (GetWorld()->IsNetMode(NM_Client))
+	{
+		Server_AddAttachment(Frame);
+	}
+}
+
+void AGunsmithTestPlayerController::OnRemoveAttachmentPressed(const FInputActionValue& Value)
+{
+	int32 Frame = -1;
+	if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
+	{
+		Frame = WorldStateSubsystem->GetCurrentSimulationFrameIndex().ServerFrame;
+	}
+	
+	Server_RemoveAttachment_Implementation(Frame);
+
+	if (GetWorld()->IsNetMode(NM_Client))
+	{
+		Server_RemoveAttachment(Frame);
+	}
+}
+
+void AGunsmithTestPlayerController::Server_RemoveAttachment_Implementation(int32 Frame)
+{
+	if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(GetPawn()))
+	{
+		for (const FGSEquipAttachmentData& Attachment : ShootingComponent->GetGlobalAttachments())
+		{
+			if (Attachment.Attachment == TestAttachmentData.Attachment)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Removed attachment"));
+				
+				ShootingComponent->RemoveAttachment(Attachment.AttachmentID, Frame);
+				break;
+			}
+		}
+	}
+}
+
+void AGunsmithTestPlayerController::Server_AddAttachment_Implementation(int32 Frame)
+{
+	if (!TestAttachmentData.Attachment)
+	{
+		return;
+	}
+	
+	FGSEquipAttachmentData NewAttachmentData = TestAttachmentData;
+	NewAttachmentData.AppliedFrame = Frame;
+
+	if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(GetPawn()))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Added attachment"));
+		
+		ShootingComponent->AddAttachment(NewAttachmentData);
 	}
 }

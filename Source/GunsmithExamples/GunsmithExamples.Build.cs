@@ -32,7 +32,8 @@ public class GunsmithExamples : ModuleRules
 				"UMG",
 				"NetworkPrediction",
 				"NetCore", 
-				"OnlineSubsystem"
+				"OnlineSubsystem",
+				"AIModule"
 			}
 		);
 	}

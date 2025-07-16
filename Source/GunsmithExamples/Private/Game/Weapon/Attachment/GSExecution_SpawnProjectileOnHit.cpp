@@ -4,7 +4,7 @@
 
 #include "World/GSWorldStateSubsystem.h"
 #include "NetworkPredictionWorldManager.h"
-#include "Netcode/GSRollbackProxy.h"
+#include "Engine/World.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 #include "Weapon/GSShootingComponent.h"
 #include "Weapon/Emitter/GSWeaponProjectileEmitter.h"
@@ -13,9 +13,9 @@
 UE_DEFINE_GAMEPLAY_TAG(TAG_Weapon_Attribute_Attachment_SpawnProjectileOnHit_NumProjectiles, "Weapon.Attribute.SpawnProjectileOnHit.NumProjectiles")
 UE_DEFINE_GAMEPLAY_TAG(TAG_Weapon_Attribute_Attachment_SpawnProjectileOnHit_SpreadRadius, "Weapon.Attribute.SpawnProjectileOnHit.SpreadRadius")
 
-void UGSExecution_SpawnProjectileOnHit::Setup(UGSShootingComponent* ShootingComponent, int32 ID)
+void UGSExecution_SpawnProjectileOnHit::Setup_Implementation(UGSShootingComponent* ShootingComponent, int32 ID)
 {
-	Super::Setup(ShootingComponent, ID);
+	Super::Setup_Implementation(ShootingComponent, ID);
 
 	NumProjectiles.Register(this, ShootingComponent);
 	ProjectileSpreadRadius.Register(this, ShootingComponent);
@@ -36,14 +36,14 @@ void UGSExecution_SpawnProjectileOnHit::Setup(UGSShootingComponent* ShootingComp
 	}
 }
 
-void UGSExecution_SpawnProjectileOnHit::Apply(UGSShootingComponent* ShootingComponent, const FGSEquipData& CurrentWeapon, int32 Frame)
+void UGSExecution_SpawnProjectileOnHit::Apply_Implementation(UGSShootingComponent* ShootingComponent, const FGSEquipData& CurrentWeapon, int32 Frame)
 {
 	if (!ProjectileToSpawn)
 	{
 		return;
 	}
 	
-	Super::Apply(ShootingComponent, CurrentWeapon, Frame);
+	Super::Apply_Implementation(ShootingComponent, CurrentWeapon, Frame);
 
 	ActivatedFrame = Frame;
 
@@ -57,9 +57,9 @@ void UGSExecution_SpawnProjectileOnHit::Apply(UGSShootingComponent* ShootingComp
 	}
 }
 
-void UGSExecution_SpawnProjectileOnHit::Remove(UGSShootingComponent* ShootingComponent)
+void UGSExecution_SpawnProjectileOnHit::Remove_Implementation(UGSShootingComponent* ShootingComponent)
 {
-	Super::Remove(ShootingComponent);
+	Super::Remove_Implementation(ShootingComponent);
 
 	AActor* Instigator = ShootingComponent->GetOwner();
 	if (Instigator)
@@ -120,9 +120,10 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 	{
 		return;
 	}
-	
-	UNetworkPredictionWorldManager* NetworkPredictionWorldManager = Instigator->GetWorld()->GetSubsystem<UNetworkPredictionWorldManager>();
-	UGSWorldStateSubsystem* WorldStateSubsystem = Instigator->GetWorld()->GetSubsystem<UGSWorldStateSubsystem>();
+
+	UWorld* World = GetWorld();
+	UNetworkPredictionWorldManager* NetworkPredictionWorldManager = World->GetSubsystem<UNetworkPredictionWorldManager>();
+	UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>();
 	if (ensure(WorldStateSubsystem))
 	{
 		// Gather interpolation stats from the NPP world state
@@ -130,7 +131,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 		int32 InterpolatedFrame = Frame;
 		float InterpolatedPercentage = 0.0f;
 
-		if (NetworkPredictionWorldManager && !GetWorld()->IsNetMode(NM_DedicatedServer))
+		if (NetworkPredictionWorldManager && !World->IsNetMode(NM_DedicatedServer))
 		{
 			const FFixedTickState& FixedTickState = NetworkPredictionWorldManager->GetFixedTickState();
 			InterpolatedFrame = FixedTickState.Interpolation.ToFrame >= 0 ? FixedTickState.Interpolation.ToFrame - 1 : FixedTickState.PendingFrame;
