@@ -862,13 +862,18 @@ void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponen
 				AnimInstance->Montage_Play(RandomMontage);
 			}
 		}
-		
-		Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
-		Mesh->SetAllBodiesBelowSimulatePhysics(RagdollImpulseBone, true);
 
-		const FVector Velocity = GetVelocity();
-		const FVector Impulse = Velocity + (Velocity.GetSafeNormal() * RagdollImpulseStrength);
-		Mesh->AddImpulse(Impulse, RagdollImpulseBone, true);
+		// Delay ragdoll before applying
+		FTimerHandle Handle;
+		GetWorld()->GetTimerManager().SetTimer(Handle, [this]()
+		{
+			Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
+			Mesh->SetAllBodiesBelowSimulatePhysics(RagdollImpulseBone, true);
+
+			const FVector Velocity = GetVelocity();
+			const FVector Impulse = Velocity + (Velocity.GetSafeNormal() * RagdollImpulseStrength);
+			Mesh->AddImpulse(Impulse, RagdollImpulseBone, true);
+		}, FMath::RandRange(0.1f, 0.6f), false);
 	}
 
 	if (DeathTimeBeforeDestroy > 0.0f)
