@@ -23,7 +23,7 @@ public:
 	// AGunsmithGameMode Begin
 	virtual void BeginPlay() override;
 	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
-	virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName = L"") override;
+	virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName = TEXT("")) override;
 	// AGunsmithGameMode Begin
 
 	// Register a spawn area on the map for bots to be spawned in
