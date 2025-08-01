@@ -3,11 +3,19 @@
 #include "Game/Tests/GunsmithGameState_Accuracy.h"
 
 #include "GSGameplayLibrary.h"
+#include "Game/GunsmithPlayerState.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Net/Core/PushModel/PushModel.h"
 #include "Weapon/GSShootingComponent.h"
+
+void AGunsmithGameState_Accuracy::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+
+	TryToSetUpPlayerStateForAutoShoot(PlayerState);
+}
 
 void AGunsmithGameState_Accuracy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -32,6 +40,46 @@ void AGunsmithGameState_Accuracy::SetAutoShootData(int32 Index, FName BoneName)
 	MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, AutoShootData, this);
 }
 
+void AGunsmithGameState_Accuracy::TryToSetUpPlayerStateForAutoShoot(APlayerState* Player)
+{
+#if !UE_BUILD_SHIPPING
+	if (AutoShootData.PlayerIndex == INDEX_NONE)
+	{
+		return;
+	}
+
+	if (Player->GetPlayerId() == 0)
+	{
+		AGunsmithPlayerState* GunsmithPlayerState = Cast<AGunsmithPlayerState>(Player);
+
+		if (ensure(GunsmithPlayerState))
+		{
+			GunsmithPlayerState->OnIdChanged.AddDynamic(this, &AGunsmithGameState_Accuracy::OnIdChanged);
+		}
+	}
+	else if (Player->GetPlayerId() != AutoShootData.PlayerIndex)
+	{
+		APawn* Pawn = Player->GetPawn();
+
+		if (Pawn)
+		{
+			if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(Pawn))
+			{
+				ShootingComponent->SetAutoShootData(AutoShootData);
+			}
+			else
+			{
+				UE_LOG(LogGunsmithTests, Warning, TEXT("Unable to find shooting component on %s"), *GetNameSafe(Pawn));
+			}
+		}
+		else
+		{
+			Player->OnPawnSet.AddDynamic(this, &AGunsmithGameState_Accuracy::OnPawnSet);
+		}
+	}
+#endif
+}
+
 void AGunsmithGameState_Accuracy::OnRep_AutoShootData()
 {
 #if !UE_BUILD_SHIPPING
@@ -48,4 +96,27 @@ void AGunsmithGameState_Accuracy::OnRep_AutoShootData()
 		}
 	}
 #endif
+}
+
+void AGunsmithGameState_Accuracy::OnPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn)
+{
+	if (Player)
+	{
+		Player->OnPawnSet.RemoveDynamic(this, &AGunsmithGameState_Accuracy::OnPawnSet);
+	}
+
+	TryToSetUpPlayerStateForAutoShoot(Player);
+}
+
+void AGunsmithGameState_Accuracy::OnIdChanged(APlayerState* Player)
+{
+	if (AGunsmithPlayerState* GunsmithPlayerState = Cast<AGunsmithPlayerState>(Player))
+	{
+		GunsmithPlayerState->OnIdChanged.RemoveDynamic(this, &AGunsmithGameState_Accuracy::OnIdChanged);
+	}
+	
+	if (Player->GetPlayerId() != AutoShootData.PlayerIndex)
+	{
+		TryToSetUpPlayerStateForAutoShoot(Player);
+	}
 }

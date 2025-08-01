@@ -146,7 +146,6 @@ void AGunsmithMoverCharacter::BeginPlay()
 	HealthComponent->OnDeath.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDeath);
 	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
-	RollbackComponent->OnFinalizeFrame.AddDynamic(this, &AGunsmithMoverCharacter::OnPostFinalizeFrame);
 
 	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
 	if (RollbackProxy)
@@ -193,13 +192,15 @@ void AGunsmithMoverCharacter::BeginPlay()
 			}
 		}
 	}
-
-#if !UE_BUILD_SHIPPING
+	
 	if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
 	{
+		WorldStateSubsystem->OnRollbackFinalize.AddDynamic(this, &AGunsmithMoverCharacter::OnPostFinalizeFrame);
+		
+#if !UE_BUILD_SHIPPING
 		WorldStateSubsystem->RegisterProjectileCreatedDelegate(this).AddDynamic(this, &AGunsmithMoverCharacter::OnProjectileCreated);
-	}
 #endif
+	}
 
 	SaveInitialActorRotation();
 }
@@ -413,6 +414,14 @@ void AGunsmithMoverCharacter::OnRep_Controller()
 
 FRotator AGunsmithMoverCharacter::GetBaseAimRotation() const
 {
+#if !UE_BUILD_SHIPPING
+	const FGunsmithAutoShootData& AutoShootData = ShootingComponent->GetAutoShootData();
+	if (AutoShootData.PlayerIndex != INDEX_NONE)
+	{
+		return GetAuthoritativeAimRotation();
+	}
+#endif
+	
 	if (IsLocallyControlled() && IsValid(ShootingComponent))
 	{
 		return LookRotation + CurrentRecoilRotation;		
@@ -936,16 +945,13 @@ void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const 
 	UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
 {
 #if !UE_BUILD_SHIPPING
-	if (AGSRollbackProxy* RollbackProxy = Cast<AGSRollbackProxy>(Hit.GetActor()))
+	if (APawn* HitPawn = Cast<APawn>(Hit.GetActor()))
 	{
-		if (APawn* HitPawn = Cast<APawn>(RollbackProxy->GetOwner()))
+		if (APlayerState* HitPlayer = HitPawn->GetPlayerState())
 		{
-			if (APlayerState* HitPlayer = HitPawn->GetPlayerState())
+			if (HitPlayer->GetPlayerId() == ShootingComponent->GetAutoShootData().PlayerIndex)
 			{
-				if (HitPlayer->GetPlayerId() == ShootingComponent->GetAutoShootData().PlayerIndex)
-				{
-					AutoShootProjectileHitCount++;
-				}
+				AutoShootProjectileHitCount++;
 			}
 		}
 	}

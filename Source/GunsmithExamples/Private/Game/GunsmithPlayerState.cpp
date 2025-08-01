@@ -8,3 +8,10 @@ void AGunsmithPlayerState::OnRep_PlayerName()
 
 	OnNameChanged.Broadcast(GetPlayerName());
 }
+
+void AGunsmithPlayerState::OnRep_PlayerId()
+{
+	Super::OnRep_PlayerId();
+
+	OnIdChanged.Broadcast(this);
+}

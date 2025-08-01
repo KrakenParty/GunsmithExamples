@@ -15,8 +15,9 @@ class GUNSMITHEXAMPLES_API AGunsmithGameState_Accuracy : public AGunsmithGameSta
 {
 	GENERATED_BODY()
 
-public:
+public:	
 	// AGunsmithGameState Begin
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// AGunsmithGameState End
 
@@ -28,6 +29,14 @@ protected:
 	FGunsmithAutoShootData AutoShootData;
 
 private:
+	void TryToSetUpPlayerStateForAutoShoot(APlayerState* Player);
+	
 	UFUNCTION()
 	void OnRep_AutoShootData();
+
+	UFUNCTION()
+	void OnPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn);
+
+	UFUNCTION()
+	void OnIdChanged(APlayerState* Player);
 };
