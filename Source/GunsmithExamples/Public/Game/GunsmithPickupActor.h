@@ -7,7 +7,10 @@
 #include "GameFramework/Actor.h"
 #include "GunsmithPickupActor.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGSPickUpWeaponLoadedDelegate, UGSWeaponDataAsset*, DataAsset);
+
 class USphereComponent;
+class UGSWeaponsSubsystem;
 
 /**
  * An example of how to create a pickup actor with Gunsmith. Also uses UGSWeaponSkeletalMeshComponent to display the gun mesh dynamically
@@ -26,6 +29,9 @@ public:
 
 protected:
 	/*** Exposed Variables ***/
+
+	UPROPERTY(BlueprintAssignable, Category="Pickup")
+	FGSPickUpWeaponLoadedDelegate OnWeaponLoaded;
 
 	// The equipment data that should be applied to the shooting component on overlap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
@@ -53,4 +59,6 @@ private:
 	// Called when an actor overlaps the SphereComponent
 	UFUNCTION()
 	void OnActorOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	void OnPreloadCompleted(const UGSWeaponsSubsystem* Subsystem);
 };

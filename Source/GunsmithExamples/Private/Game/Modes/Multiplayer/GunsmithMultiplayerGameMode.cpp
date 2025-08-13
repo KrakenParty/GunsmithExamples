@@ -178,6 +178,15 @@ void AGunsmithMultiplayerGameMode::OnPawnDeath(UGSHealthComponent* HealthCompone
 
 void AGunsmithMultiplayerGameMode::RestartRound()
 {
+	AGunsmithMultiplayerGameState* GSGameState = GetGameState<AGunsmithMultiplayerGameState>();
+
+	if (!ensure(GSGameState))
+	{
+		return;
+	}
+
+	const TArray<TObjectPtr<UGSWeaponDataAsset>>& WeaponPool = GSGameState->GetWeaponPool();
+	
 	if (!ensureAlways(WeaponPool.Num() != 0))
 	{
 		return;
@@ -193,7 +202,7 @@ void AGunsmithMultiplayerGameMode::RestartRound()
 		AvailablePlayerStarts.Emplace(PlayerStart);
 	}
 	
-	TArray<TSubclassOf<UGSWeaponAttachment>> TempPool = AttachmentPool;
+	TArray<TSubclassOf<UGSWeaponAttachment>> TempPool = GSGameState->GetAttachmentPool();
 
 	// Create the random equip data
 	FGSEquipData EquipData;
@@ -213,10 +222,7 @@ void AGunsmithMultiplayerGameMode::RestartRound()
 	}
 
 	// Update the game state with the new round equipment
-	if (AGunsmithMultiplayerGameState* GSGameState = GetGameState<AGunsmithMultiplayerGameState>())
-	{
-		GSGameState->SetRoundEquipment(EquipData);
-	}
+	GSGameState->SetRoundEquipment(EquipData);
 	
 	const int32 NumControllers = UGameplayStatics::GetNumPlayerControllers(this);
 

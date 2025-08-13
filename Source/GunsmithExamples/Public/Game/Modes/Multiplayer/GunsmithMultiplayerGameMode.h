@@ -29,14 +29,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Mode", meta=(ClampMin="0.0"))
 	float EndOfRoundTime = 5.0f;
 
-	// The pool of weapons to randomly select from at the start of a round
-	UPROPERTY(EditDefaultsOnly, Category = "Mode")
-	TArray<TObjectPtr<UGSWeaponDataAsset>> WeaponPool;
-
-	// The pool of attachments to randomly select from at the start of a round
-	UPROPERTY(EditDefaultsOnly, Category = "Mode")
-	TArray<TSubclassOf<UGSWeaponAttachment>> AttachmentPool;
-
 	// How many attachments to randomly select for each weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Mode", meta=(ClampMin="0"))
 	int32 NumAttachments = 2;

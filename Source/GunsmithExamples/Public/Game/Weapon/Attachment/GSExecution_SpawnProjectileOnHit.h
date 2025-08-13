@@ -12,6 +12,7 @@ class UGSProjectileDataAsset;
 class UGSProjectileState;
 struct FGSProjectileFrameState;
 struct FHitResult;
+struct FGSObjectPoolArray;
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_Attribute_Attachment_SpawnProjectileOnHit_NumProjectiles)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_Attribute_Attachment_SpawnProjectileOnHit_SpreadRadius)
@@ -29,6 +30,8 @@ public:
 	virtual void Setup_Implementation(UGSShootingComponent* ShootingComponent, int32 ID) override;
 	virtual void Apply_Implementation(UGSShootingComponent* ShootingComponent, const FGSEquipData& CurrentWeapon, int32 Frame) override;
 	virtual void Remove_Implementation(UGSShootingComponent* ShootingComponent) override;
+
+	virtual void GatherPoolingRequirements_Implementation(int32 NumPlayers, UGSWeaponDataAsset* WeaponData, TMap<TSubclassOf<UObject>, FGSObjectPoolArray>& PoolingRequirements, int32 MaxLevel) const override;
 
 	virtual UGSEmitterOutputDataAsset* GetAssociatedEmitterOutputDataAsset() const override;
 	// UGSWeaponAttachmentExecution End

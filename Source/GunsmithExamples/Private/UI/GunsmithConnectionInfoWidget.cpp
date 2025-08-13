@@ -32,6 +32,19 @@ void UGunsmithConnectionInfoWidget::NativeOnInitialized()
 	}
 }
 
+void UGunsmithConnectionInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	UWorld* World = GetWorld();
+	if (UNetDriver* NetDriver = World->GetNetDriver())
+	{
+		TSharedPtr<const FInternetAddr> LocalAddress = NetDriver->GetLocalAddr();
+		const FString AddressString = LocalAddress->ToString(true);
+		UE_LOG(LogTemp, Log, TEXT("Address %s"), *AddressString);
+	}
+}
+
 void UGunsmithConnectionInfoWidget::OnSessionCreateComplete(FName SessionName, bool bIsSuccessful)
 {
 	SetVisibility(ESlateVisibility::Visible);

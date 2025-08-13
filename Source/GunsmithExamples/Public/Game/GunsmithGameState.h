@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "Performance/GSPreloadDataRow.h"
 #include "GunsmithGameState.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogGunsmithTests, Log, All);
@@ -20,6 +21,9 @@ class GUNSMITHEXAMPLES_API AGunsmithGameState : public AGameState
 
 public:
 	// AGameState Begin
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	// AGameState End
@@ -28,4 +32,8 @@ public:
 	FGunsmithPlayerListChangedDelegate OnPlayerAdded;
 	UPROPERTY(BlueprintAssignable, Category="Gunsmith")
 	FGunsmithPlayerListChangedDelegate OnPlayerRemoved;
+
+protected:
+	UPROPERTY(EditAnywhere, Category="Gunsmith")
+	FGSPreloadData PreloadData;
 };

@@ -5,7 +5,9 @@
 
 #include "GSGameplayLibrary.h"
 #include "Components/SphereComponent.h"
+#include "Engine/GameInstance.h"
 #include "Netcode/GSNetworkLibrary.h"
+#include "Weapon/GSWeaponsSubsystem.h"
 
 AGunsmithPickupActor::AGunsmithPickupActor()
 {
@@ -32,6 +34,15 @@ void AGunsmithPickupActor::BeginPlay()
 	if (EquipData.WeaponData)
 	{
 		WeaponMesh->Init(EquipData.WeaponData, EquipData.Skin, FGSEquipData::GatherAttachmentTags(EquipData.Attachments));
+
+		OnWeaponLoaded.Broadcast(EquipData.WeaponData);
+	}
+	else if (EquipData.AssetTag.IsValid())
+	{
+		if (UGSWeaponsSubsystem* WeaponsSubsystem = GetGameInstance()->GetSubsystem<UGSWeaponsSubsystem>())
+		{
+			WeaponsSubsystem->CallOrRegisterPreloadComplete(FGSWeaponsSystemPreloadCompleteDelegate::FDelegate::CreateUObject(this, &AGunsmithPickupActor::OnPreloadCompleted));
+		}
 	}
 }
 
@@ -53,5 +64,19 @@ void AGunsmithPickupActor::OnActorOverlap(AActor* OverlappedActor, AActor* Other
 		{
 			Destroy(true);
 		}
+	}
+}
+
+void AGunsmithPickupActor::OnPreloadCompleted(const UGSWeaponsSubsystem* Subsystem)
+{
+	UGSWeaponDataAsset* WeaponData = Subsystem->GetLoadedWeaponData(EquipData.AssetTag);
+
+	if (ensure(WeaponData))
+	{
+		EquipData.WeaponData = WeaponData;
+		
+		WeaponMesh->Init(WeaponData, EquipData.Skin, FGSEquipData::GatherAttachmentTags(EquipData.Attachments));
+
+		OnWeaponLoaded.Broadcast(WeaponData);
 	}
 }

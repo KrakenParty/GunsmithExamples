@@ -19,6 +19,7 @@ class GUNSMITHEXAMPLES_API UGunsmithConnectionInfoWidget : public UUserWidget
 public:
 	// UUserWidget Begin
 	virtual void NativeOnInitialized() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	// UUserWidget End
 
 protected:
@@ -26,5 +27,7 @@ protected:
 	TObjectPtr<UEditableText> TextWidget;
 
 private:
+	bool bIsInitialized = false;
+	
 	void OnSessionCreateComplete(FName SessionName, bool bIsSuccessful);
 };

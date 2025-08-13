@@ -23,13 +23,25 @@ public:
 	FGunsmithGameStateRoundEquipmentChangedDelegate OnEquipmentChangedDelegate;
 
 	// AGunsmithGameState Begin
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// AGunsmithGameState End
 
 	// Sets the active round equipment data for UI to broadcast
 	void SetRoundEquipment(const FGSEquipData& NewEquipData);
 
+	const TArray<TObjectPtr<UGSWeaponDataAsset>>& GetWeaponPool() const { return WeaponPool; }
+	const TArray<TSubclassOf<UGSWeaponAttachment>>& GetAttachmentPool() const { return AttachmentPool; }
+
 protected:
+	// The pool of weapons to randomly select from at the start of a round
+	UPROPERTY(EditDefaultsOnly, Category = "Mode")
+	TArray<TObjectPtr<UGSWeaponDataAsset>> WeaponPool;
+
+	// The pool of attachments to randomly select from at the start of a round
+	UPROPERTY(EditDefaultsOnly, Category = "Mode")
+	TArray<TSubclassOf<UGSWeaponAttachment>> AttachmentPool;
+	
 	// The current round equipment
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentRoundEquipment)
 	FGSEquipData CurrentRoundEquipment;

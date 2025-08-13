@@ -40,7 +40,18 @@ protected:
 	void OnSearchFinished(bool bSuccess);
 
 private:
+	FTimerHandle ConnectionTimeoutHandle;
+	FDelegateHandle TravelFailedHandle;
 	FDelegateHandle SearchHandle;
 	bool bIsSearchActive = false;
 	TSharedPtr<FOnlineSessionSearch> SearchSettings = nullptr;
+
+	UFUNCTION()
+	void OnTravelFailed(UWorld* World, ETravelFailure::Type FailureType, const FString& FailureString);
+
+	UFUNCTION()
+	void OnConnectionLost(const FUniqueNetIdRepl& ConnectionUniqueId);
+
+	UFUNCTION()
+	void OnConnectionTimeout();
 };

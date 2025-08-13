@@ -5,6 +5,7 @@
 #include "World/GSWorldStateSubsystem.h"
 #include "NetworkPredictionWorldManager.h"
 #include "Engine/World.h"
+#include "Performance/GSObjectPoolSubsystem.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 #include "Weapon/GSShootingComponent.h"
 #include "Weapon/Emitter/GSWeaponProjectileEmitter.h"
@@ -84,6 +85,21 @@ void UGSExecution_SpawnProjectileOnHit::Remove_Implementation(UGSShootingCompone
 		}
 	}
 #endif
+}
+
+void UGSExecution_SpawnProjectileOnHit::GatherPoolingRequirements_Implementation(int32 NumPlayers,
+	UGSWeaponDataAsset* WeaponData, TMap<TSubclassOf<UObject>, FGSObjectPoolArray>& PoolingRequirements, int32 MaxLevel) const
+{
+	Super::GatherPoolingRequirements_Implementation(NumPlayers, WeaponData, PoolingRequirements, MaxLevel);
+
+	if (ProjectileToSpawn && ProjectileToSpawn->ProjectileClass)
+	{
+		// Estimating the total amount of times this can spawn in a second. It is recommended to override this logic with your own
+		constexpr int32 MaxExecutionsPerSecond = 5;
+		FGSObjectPoolArray& PoolRequirements = PoolingRequirements.FindOrAdd(ProjectileToSpawn->ProjectileClass);
+		FGSObjectPoolRequirements& Requirements = PoolRequirements.Requirements.Emplace_GetRef(FString::Format(TEXT("{0} - UGSExecution_SpawnProjectileOnHit"), { GetNameSafe(WeaponData) }));
+		Requirements.StaticInstances += NumProjectiles.GetBaseValue() * MaxExecutionsPerSecond;
+	}
 }
 
 UGSEmitterOutputDataAsset* UGSExecution_SpawnProjectileOnHit::GetAssociatedEmitterOutputDataAsset() const

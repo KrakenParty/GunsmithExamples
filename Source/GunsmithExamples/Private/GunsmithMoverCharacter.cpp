@@ -59,6 +59,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Alternate, "Weap
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Premium, "Weapon.Tag.Rifle.Premium");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Pistol, "Weapon.Tag.Pistol");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Shotgun, "Weapon.Tag.Shotgun");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_BeamRifle, "Weapon.Tag.BeamRifle");
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Scope, "Weapon.Attachment.Scope.Default");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Silencer, "Weapon.Attachment.Silencer.Default");

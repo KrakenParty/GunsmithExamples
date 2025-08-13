@@ -3,10 +3,13 @@
 
 #include "UI/GunsmithJoinGameWidget.h"
 
+#include "GameDelegates.h"
 #include "Components/EditableText.h"
 #include "Online.h"
 #include "OnlineSessionSettings.h"
+#include "TimerManager.h"
 #include "Components/TextBlock.h"
+#include "Engine/Engine.h"
 #include "Game/Modes/Multiplayer/GunsmithMultiplayerGameMode.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -44,7 +47,8 @@ void UGunsmithJoinGameWidget::TravelToDestination()
 	FString ConnectionString = DestinationTextWidget->GetText().ToString();
 	ConnectionString = ConnectionString.TrimStartAndEnd();
 
-	IOnlineSessionPtr SessionInterface = Online::GetSessionInterface();
+	// Disabled session based joining due to not being able to use Steam Sockets
+	/*IOnlineSessionPtr SessionInterface = Online::GetSessionInterface();
 	if (SessionInterface)
 	{
 		SearchSettings = MakeShared<FOnlineSessionSearch>();
@@ -65,7 +69,18 @@ void UGunsmithJoinGameWidget::TravelToDestination()
 		{
 			SetInfoString("Unable to find session", true);
 		}
+	}*/
+
+	if (!TravelFailedHandle.IsValid())
+	{
+		TravelFailedHandle = GEngine->TravelFailureEvent.AddUObject(this, &UGunsmithJoinGameWidget::OnTravelFailed);
+		FGameDelegates::Get().GetPendingConnectionLostDelegate().AddUObject(this, &UGunsmithJoinGameWidget::OnConnectionLost);
 	}
+
+	SetInfoString("Connecting...", false);
+	UGameplayStatics::OpenLevel(this, FName(ConnectionString));
+
+	GetWorld()->GetTimerManager().SetTimer(ConnectionTimeoutHandle, FTimerDelegate::CreateUObject(this, &UGunsmithJoinGameWidget::OnConnectionTimeout), 20.0f, false);
 }
 
 void UGunsmithJoinGameWidget::SetInfoString(const FString& NewText, bool bIsError) const
@@ -111,4 +126,21 @@ void UGunsmithJoinGameWidget::OnSearchFinished(bool bSuccess)
 	{
 		SetInfoString("Session search failed", true);
 	}
+}
+
+void UGunsmithJoinGameWidget::OnTravelFailed(UWorld* World, ETravelFailure::Type FailureType,
+	const FString& FailureString)
+{
+	GEngine->TravelFailureEvent.Remove(TravelFailedHandle);
+	TravelFailedHandle.Reset();
+}
+
+void UGunsmithJoinGameWidget::OnConnectionLost(const FUniqueNetIdRepl& ConnectionUniqueId)
+{
+	OnConnectionTimeout();
+}
+
+void UGunsmithJoinGameWidget::OnConnectionTimeout()
+{
+	SetInfoString("Unable to connect to IP. Please ensure you're connecting to a local IP or have opened the port 7777.", true);
 }
