@@ -19,7 +19,6 @@ class GUNSMITHEXAMPLES_API UGunsmithConnectionInfoWidget : public UUserWidget
 public:
 	// UUserWidget Begin
 	virtual void NativeOnInitialized() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	// UUserWidget End
 
 protected:

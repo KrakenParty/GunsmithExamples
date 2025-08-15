@@ -44,6 +44,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "CommonLoadingScreen",
+			"Enabled": true
+		},
+		{
 			"Name": "ActorSequence",
 			"Enabled": false
 		},

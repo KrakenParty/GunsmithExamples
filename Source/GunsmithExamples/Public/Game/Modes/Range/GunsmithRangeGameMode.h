@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Game/GunsmithGameMode.h"
+#include "Weapon/GSEquipData.h"
 #include "GunsmithRangeGameMode.generated.h"
 
 class AGunsmithRangeSpawnArea;
@@ -35,7 +36,7 @@ public:
 	// Begins the practise mode
 	void StartPractise();
 	// Ends the practise mode
-	void EndPractise() const;
+	void EndPractise();
 
 protected:	
 	UPROPERTY()
@@ -52,8 +53,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Range Mode", meta=(ClampMin="0"))
 	float SpawnWallThickness = 100.0f;
 
+	// The attachment to apply to characters during the practise mode
+	UPROPERTY(EditDefaultsOnly, Category="Range Mode", meta=(ClampMin="0"))
+	FGSEquipAttachmentData PractiseModeAttachment;
+
 	float MaxWeaponRange = 99999999.9f;
 	float LastSpawnDistance = 0.0f;
+
+	TMap<TObjectKey<APawn>, int32> AppliedAttachments;
 
 	// Creates the initial bot in the designated spawn area
 	void StartGame();

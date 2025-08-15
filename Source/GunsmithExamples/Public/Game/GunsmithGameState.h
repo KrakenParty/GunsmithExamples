@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LoadingProcessInterface.h"
 #include "GameFramework/GameState.h"
 #include "Performance/GSPreloadDataRow.h"
 #include "GunsmithGameState.generated.h"
@@ -15,7 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGunsmithPlayerListChangedDelegate, 
  *	A simple GameState to accompany the GunsmithGameMode
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithGameState : public AGameState
+class GUNSMITHEXAMPLES_API AGunsmithGameState : public AGameState, public ILoadingProcessInterface
 {
 	GENERATED_BODY()
 
@@ -26,6 +27,8 @@ public:
 	
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+	virtual bool ShouldShowLoadingScreen(FString& OutReason) const override;
 	// AGameState End
 
 	UPROPERTY(BlueprintAssignable, Category="Gunsmith")
@@ -34,6 +37,8 @@ public:
 	FGunsmithPlayerListChangedDelegate OnPlayerRemoved;
 
 protected:
+	bool bIsInitialized = false;
+	
 	UPROPERTY(EditAnywhere, Category="Gunsmith")
 	FGSPreloadData PreloadData;
 };

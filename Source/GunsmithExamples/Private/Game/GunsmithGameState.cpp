@@ -14,11 +14,18 @@ void AGunsmithGameState::BeginPlay()
 	// Start preloading assets as soon as the game state is ready
 	// Other games could do this during a loading screen, before transitioning into a level
 	if (PreloadData.PreloadDataTable)
-	{
+	{		
 		if (UGSWeaponsSubsystem* WeaponsSubsystem = GetGameInstance()->GetSubsystem<UGSWeaponsSubsystem>())
 		{
-			WeaponsSubsystem->PreloadObjects(PreloadData);
+			WeaponsSubsystem->PreloadObjects(PreloadData, FGSWeaponsSystemPreloadCompleteDelegate::FDelegate::CreateWeakLambda(this, [this](const UGSWeaponsSubsystem* Subsystem)
+			{
+				bIsInitialized = true;
+			}));
 		}
+	}
+	else
+	{
+		bIsInitialized = true;
 	}
 }
 
@@ -44,4 +51,15 @@ void AGunsmithGameState::RemovePlayerState(APlayerState* PlayerState)
 	Super::RemovePlayerState(PlayerState);
 
 	OnPlayerRemoved.Broadcast(PlayerState);
+}
+
+bool AGunsmithGameState::ShouldShowLoadingScreen(FString& OutReason) const
+{
+	if (!bIsInitialized)
+	{
+		OutReason = "Waiting for GunsmithGameState to finish loading";
+		return true;
+	}
+
+	return false;
 }

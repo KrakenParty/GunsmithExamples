@@ -10,7 +10,9 @@
 #include "Engine/World.h"
 #include "Game/Modes/Range/GunsmithGameState_Range.h"
 #include "Game/Modes/Range/GunsmithRangeSpawnArea.h"
+#include "GameFramework/PlayerState.h"
 #include "Weapon/GSShootingComponent.h"
+#include "Weapon/Clip/GSClipBehavior.h"
 #include "Weapon/Emitter/GSWeaponEmitter.h"
 #include "Weapon/Emitter/Output/GSEmitterOutputDataAsset.h"
 
@@ -114,16 +116,51 @@ void AGunsmithRangeGameMode::StartPractise()
 		{
 			RangeState->StartPractise(StartUpTime);
 
+			for (APlayerState* Player : RangeState->PlayerArray)
+			{
+				APawn* Pawn = Player->GetPawn();
+
+				if (IsValid(Pawn))
+				{
+					if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(Pawn))
+					{
+						const int32 AttachmentID = ShootingComponent->AddAttachment(PractiseModeAttachment);
+						AppliedAttachments.FindOrAdd(Pawn) = AttachmentID;
+
+						// Reload the current ammo
+						if (UGSClipBehavior* ClipBehavior = ShootingComponent->GetClipBehavior())
+						{
+							ClipBehavior->FullReload(ShootingComponent, 0);
+						}
+					}
+				}
+			}
+			
 			RestartAIPawns(StartUpTime);
 		}
 	}
 }
 
-void AGunsmithRangeGameMode::EndPractise() const
+void AGunsmithRangeGameMode::EndPractise()
 {
 	if (AGunsmithGameState_Range* RangeState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
 	{
 		RangeState->EndPractise();
+
+		// Remove any applied attachments
+		for (APlayerState* Player : RangeState->PlayerArray)
+		{
+			APawn* Pawn = Player->GetPawn();
+
+			if (IsValid(Pawn) && AppliedAttachments.Contains(Pawn))
+			{
+				if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(Pawn))
+				{
+					ShootingComponent->RemoveAttachment(AppliedAttachments[Pawn]);
+					AppliedAttachments.Remove(Pawn);
+				}
+			}
+		}
 	}
 }
 

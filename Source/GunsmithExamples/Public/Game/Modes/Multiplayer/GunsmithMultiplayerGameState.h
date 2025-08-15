@@ -45,6 +45,9 @@ protected:
 	// The current round equipment
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentRoundEquipment)
 	FGSEquipData CurrentRoundEquipment;
+
+	UPROPERTY()
+	TObjectPtr<UDataTable> PreloadDataTable = nullptr;
 	
 	virtual void OnRep_MatchState() override;
 

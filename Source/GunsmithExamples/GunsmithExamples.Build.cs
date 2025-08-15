@@ -33,7 +33,9 @@ public class GunsmithExamples : ModuleRules
 				"NetworkPrediction",
 				"NetCore", 
 				"OnlineSubsystem",
-				"AIModule"
+				"AIModule",
+				"Sockets",
+				"CommonLoadingScreen"
 			}
 		);
 	}

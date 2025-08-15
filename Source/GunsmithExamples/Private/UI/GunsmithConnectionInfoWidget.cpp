@@ -6,6 +6,7 @@
 #include "Engine/NetConnection.h"
 #include "Online.h"
 #include "OnlineSessionSettings.h"
+#include "SocketSubsystem.h"
 #include "Components/EditableText.h"
 #include "Game/Modes/Multiplayer/GunsmithMultiplayerGameMode.h"
 #include "Interfaces/OnlineSessionInterface.h"
@@ -21,7 +22,31 @@ void UGunsmithConnectionInfoWidget::NativeOnInitialized()
 		return;
 	}
 
-	if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
+	TArray<TSharedPtr<FInternetAddr>> AllAddresses;
+	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalAdapterAddresses(AllAddresses);
+	
+	TArray<FString> AddressStrings;
+	for (const TSharedPtr<FInternetAddr>& Address : AllAddresses)
+	{
+		AddressStrings.Emplace(Address->ToString(false));
+	}
+
+	if (AddressStrings.Num() > 0)
+	{
+		FString FullString = "";
+		for (const FString& Address : AddressStrings)
+		{
+			FullString += Address + "\n";
+		}
+	
+		TextWidget->SetText(FText::FromString(FullString));
+	}
+	else
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	/*if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
 	{
 		SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGunsmithConnectionInfoWidget::OnSessionCreateComplete);
 
@@ -29,20 +54,7 @@ void UGunsmithConnectionInfoWidget::NativeOnInitialized()
 		{
 			OnSessionCreateComplete(AGunsmithMultiplayerGameMode::SessionName, true);
 		}
-	}
-}
-
-void UGunsmithConnectionInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	UWorld* World = GetWorld();
-	if (UNetDriver* NetDriver = World->GetNetDriver())
-	{
-		TSharedPtr<const FInternetAddr> LocalAddress = NetDriver->GetLocalAddr();
-		const FString AddressString = LocalAddress->ToString(true);
-		UE_LOG(LogTemp, Log, TEXT("Address %s"), *AddressString);
-	}
+	}*/
 }
 
 void UGunsmithConnectionInfoWidget::OnSessionCreateComplete(FName SessionName, bool bIsSuccessful)

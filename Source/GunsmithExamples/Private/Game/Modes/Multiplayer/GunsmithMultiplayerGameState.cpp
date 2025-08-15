@@ -16,8 +16,10 @@ void AGunsmithMultiplayerGameState::BeginPlay()
 	// Send all preload requirements to the weapons subsystem to pool any required objects
 	if (UGSWeaponsSubsystem* WeaponsSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UGSWeaponsSubsystem>())
 	{
+		PreloadDataTable = NewObject<UDataTable>();
+		
 		FGSPreloadData DynamicPreloadData;
-		DynamicPreloadData.PreloadDataTable = NewObject<UDataTable>();
+		DynamicPreloadData.PreloadDataTable = PreloadDataTable;
 		DynamicPreloadData.PreloadDataTable->RowStruct = FGSPreloadDataRow::StaticStruct();
 		DynamicPreloadData.ExpectedPlayers = PreloadData.ExpectedPlayers;
 
