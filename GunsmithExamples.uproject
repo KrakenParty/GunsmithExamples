@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{E9CB8FDB-400A-8A7C-6097-A98B6DD7547E}",
+	"EngineAssociation": "5.6",
 	"Category": "",
 	"Description": "An example project for the Gunsmith plugin",
 	"Modules": [
