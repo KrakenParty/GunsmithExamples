@@ -36,11 +36,11 @@ void AGunsmithPlayerController::SetupInputComponent()
 	if (CommonInputs)
 	{
 		UGunsmithCommonInputs* CommonInputObject = CommonInputs->GetDefaultObject<UGunsmithCommonInputs>();
-		if (CommonInputObject->UIInputMappingContext)
+		if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
-			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+			for (TObjectPtr<UInputMappingContext> MappingContext : CommonInputObject->AdditionalInputMappingContexts)
 			{
-				EnhancedInputSubsystem->AddMappingContext(CommonInputObject->UIInputMappingContext, 0);
+				EnhancedInputSubsystem->AddMappingContext(MappingContext, 0);
 			}
 		}
 		
@@ -134,6 +134,11 @@ void AGunsmithPlayerController::SetUIInputMode(bool bEnabled, UWidget* WidgetToF
 
 		SetInputMode(GameMode);
 	}
+}
+
+void AGunsmithPlayerController::RequestServerRestartPawn()
+{
+	ServerRestartPlayer();
 }
 
 void AGunsmithPlayerController::OnPausePressed(const FInputActionValue& Value)

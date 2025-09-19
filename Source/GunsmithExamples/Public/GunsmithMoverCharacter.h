@@ -56,6 +56,7 @@ public:
 	virtual void NotifyRestarted() override;
 	virtual void OnRep_Controller() override;
 	virtual FRotator GetBaseAimRotation() const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// APawn End
 
 	// IGSRollbackInterface Begin
@@ -82,6 +83,8 @@ public:
 	// Request the character starts moving with a desired velocity. This will be used in lieu of any other input.
 	UFUNCTION(BlueprintCallable, Category = "MoverExamples")
 	virtual void RequestMoveByVelocity(const FVector& DesiredVelocity) { CachedMoveInputVelocity = DesiredVelocity; }
+	
+	void ServerStartDebugMovement();
 
 	/*** Inputs ***/
 
@@ -280,6 +283,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Debug")
 	float TimeBetweenDebugJump = 1.6f;
 
+	UPROPERTY(ReplicatedUsing="OnRep_bServerRequestedDebugMove")
+	bool bServerRequestedDebugMove = false;
+
 	virtual void DrawCurrentLocationDebug(bool bRoundToFullFrame, const FName& LogReference) override;
 	
 #if !UE_BUILD_SHIPPING
@@ -290,6 +296,8 @@ public:
 	void EnableDebugMovement(bool bDebugMove);
 
 private:
+	bool bAddToDebugMove = false;
+	
 	bool bIsDebugMoving = false;
 	float TimeDebugMoving = 0.0f;
 	bool bDebugMovingRight = false;
@@ -311,6 +319,9 @@ private:
 
 	UFUNCTION()
 	void OnProjectileCreated(UGSProjectileState* ProjectileState);
+
+	UFUNCTION()
+	void OnRep_bServerRequestedDebugMove();
 
 	/*** Inputs ***/
 	

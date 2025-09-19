@@ -17,5 +17,6 @@ class GUNSMITHEXAMPLES_API AGunsmithGameMode_HitResponse : public AGunsmithGameM
 public:
 	// AGunsmithGameMode Begin
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
 	// AGunsmithGameMode End
 };

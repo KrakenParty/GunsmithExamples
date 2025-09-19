@@ -9,10 +9,12 @@
 #include "Blueprint/UserWidget.h"
 #include "UI/GunsmithHUDWidget.h"
 #include "GunsmithMoverCharacter.h"
+#include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Game/GunsmithPlayerController.h"
 #include "Health/GSHealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/GunsmithPauseMenuWidget.h"
 #include "Widgets/SViewport.h"
 
@@ -24,11 +26,11 @@ void AGunsmithHUD::PostInitializeComponents()
 
 	if (HUDWidgetType)
 	{
-		HUDWidget = CreateWidget<UGunsmithHUDWidget>(PlayerOwner, HUDWidgetType, TEXT("PlayerHUD"));
+		HUDWidget = CreateWidget<UGunsmithHUDWidget>(GetOwningPlayerController(), HUDWidgetType);
 
 		if (HUDWidget)
 		{
-			HUDWidget->AddToViewport();
+			HUDWidget->AddToPlayerScreen(500);
 		}
 	}
 

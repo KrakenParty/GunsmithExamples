@@ -3,11 +3,10 @@
 #include "Game/GunsmithGameMode.h"
 
 #include "GSGameplayLibrary.h"
+#include "GSLog.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Health/GSHealthComponent.h"
-
-DEFINE_LOG_CATEGORY_STATIC(LogGSGameMode, Log, All);
 
 APawn* AGunsmithGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer,
 	const FTransform& SpawnTransform)
@@ -74,7 +73,7 @@ void AGunsmithGameMode::RespawnPlayer(AController* Controller, FTimerHandle Hand
 	{
 		if (Controller->GetPawn())
 		{
-			UE_LOG(LogGSGameMode, Error, TEXT("Unable to respawn Controller %s as the pawn still exists. Make sure it has been destroyed before this point."), *Controller->GetName());
+			UE_LOG(LogGunsmith, Error, TEXT("Unable to respawn Controller %s as the pawn still exists. Make sure it has been destroyed before this point."), *Controller->GetName());
 		}
 					
 		RestartPlayer(Controller);

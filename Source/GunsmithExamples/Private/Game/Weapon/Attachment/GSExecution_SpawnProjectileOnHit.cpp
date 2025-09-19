@@ -162,8 +162,8 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 		for (int32 i = 0; i < NumProjectiles.GetModifiedValue(); i++)
 		{			
 			// Create random direction based on the attachment random seed
-			const float RandX = RandStream.RandRange(-SpreadRadius, SpreadRadius);
-			const float RandY = RandStream.RandRange(-SpreadRadius, SpreadRadius);
+			const float RandX = RandStream.FRandRange(-SpreadRadius, SpreadRadius);
+			const float RandY = RandStream.FRandRange(-SpreadRadius, SpreadRadius);
 			const FRotator RandomRotator = FRotator(RandX, RandY, 0.0f);
 			const FQuat ProjectileDirection = RandomRotator.RotateVector(Hit.ImpactNormal).ToOrientationQuat();
 

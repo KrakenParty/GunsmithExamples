@@ -11,6 +11,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GSDeveloperSettings.h"
+#include "GSLog.h"
 #include "Netcode/GSRollbackComponent.h"
 #include "InputAction.h"
 #include "Weapon/GSShootingComponent.h"
@@ -31,11 +32,14 @@
 #include "GameFramework/PlayerState.h"
 #include "Health/GSHealthComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "Netcode/GSNetworkLibrary.h"
 #include "Netcode/GSRollbackProxy.h"
 #include "UI/GunsmithHUD.h"
 #include "UI/GunsmithHUDWidget.h"
 #include "VisualLogger/VisualLogger.h"
+#include "Weapon/Emitter/GSWeaponEmitter.h"
+#include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 
 static bool PrintHealthChangesDebug = false;
 static FAutoConsoleVariableRef CVarPrintHealthChangesDebug(
@@ -49,8 +53,6 @@ static FAutoConsoleVariableRef CVarInvertMouseY(
 	InvertMouseY,
 	TEXT("Flips mouse Y controls"));
 
-DEFINE_LOG_CATEGORY_STATIC(LogGunsmithMoverCharacter, Log, All);
-
 // ReSharper disable CppDeclaratorNeverUsed
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Impact_Character, "Weapon.Impact.Character");
 
@@ -60,6 +62,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Premium, "Weapon
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Pistol, "Weapon.Tag.Pistol");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Shotgun, "Weapon.Tag.Shotgun");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_BeamRifle, "Weapon.Tag.BeamRifle");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_RocketLauncher, "Weapon.Tag.RocketLauncher");
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Scope, "Weapon.Attachment.Scope.Default");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Silencer, "Weapon.Attachment.Silencer.Default");
@@ -67,6 +70,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Magazine, "
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile, "Weapon.Emitter.Projectile.Default");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Small, "Weapon.Emitter.Projectile.Small");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Rocket, "Weapon.Emitter.Projectile.Rocket");
 // ReSharper restore CppDeclaratorNeverUsed
 
 #if !UE_BUILD_SHIPPING
@@ -304,6 +308,12 @@ void AGunsmithMoverCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
+void AGunsmithMoverCharacter::ServerStartDebugMovement()
+{
+	bServerRequestedDebugMove = true;
+	MARK_PROPERTY_DIRTY_FROM_NAME(AGunsmithMoverCharacter, bServerRequestedDebugMove, this);
+}
+
 void AGunsmithMoverCharacter::BeginShooting()
 {
 	bIsShootingInputDown = true;
@@ -406,9 +416,20 @@ void AGunsmithMoverCharacter::OnRep_Controller()
 	SaveInitialActorRotation();
 
 #if !UE_BUILD_SHIPPING
-	if (Controller && EnabledDebugMovers.Contains(Controller->GetUniqueID()))
+	if (Controller)
 	{
-		EnableDebugMovement(true);
+		int32 ControllerID = Controller->GetUniqueID();
+		
+		if (bAddToDebugMove)
+		{
+			EnabledDebugMovers.Emplace(ControllerID);
+			bAddToDebugMove = false;
+		}
+
+		if (EnabledDebugMovers.Contains(ControllerID))
+		{
+			EnableDebugMovement(true);
+		}
 	}
 #endif
 }
@@ -429,6 +450,15 @@ FRotator AGunsmithMoverCharacter::GetBaseAimRotation() const
 	}
 	
 	return Super::GetBaseAimRotation();
+}
+
+void AGunsmithMoverCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	FDoRepLifetimeParams Params;
+	Params.bIsPushBased = true;
+	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, bServerRequestedDebugMove, Params);
 }
 
 FVector AGunsmithMoverCharacter::GetVelocity() const
@@ -693,6 +723,20 @@ FRotator AGunsmithMoverCharacter::GetAuthoritativeAimRotation() const
 			}
 		}
 
+		// Try to find projectile speed
+		float ProjectileSpeed = TNumericLimits<float>::Max();
+		const TArray<UGSWeaponEmitter*> Emitters = ShootingComponent->GetEmitters();
+		if (Emitters.Num() > 0)
+		{
+			if (UGSWeaponEmitter* MainEmitter = Emitters[0])
+			{
+				if (UGSProjectileDataAsset* ProjectileDataAsset = Cast<UGSProjectileDataAsset>(MainEmitter->GetAssociatedEmitterDataAsset()))
+				{
+					ProjectileSpeed = ProjectileDataAsset->GetTravelSpeed();
+				}
+			}
+		}
+
 		// Shoot from the camera location. This may need to change in some cases?
 		APlayerController* PC = Cast<APlayerController>(Controller);
 		if (TargetPawn && PC->PlayerCameraManager)
@@ -711,7 +755,16 @@ FRotator AGunsmithMoverCharacter::GetAuthoritativeAimRotation() const
 				}
 			}
 
-			const FRotator TargetRotation = (TargetLocation - PC->PlayerCameraManager->GetCameraLocation()).Rotation();
+			// Aim to the targets future location
+			const FVector TraceStartLocation = PC->PlayerCameraManager->GetCameraLocation();
+
+			const float DistanceToTarget = (TargetLocation - TraceStartLocation).Size();
+			const float FramesToHitTarget = DistanceToTarget / ProjectileSpeed;
+
+			const FVector PawnVelocity = TargetPawn->GetVelocity();
+			const FVector PredictionLocation = TargetLocation + PawnVelocity * FramesToHitTarget;
+
+			const FRotator TargetRotation = (PredictionLocation - TraceStartLocation).Rotation();
 			return TargetRotation;
 		}
 	}
@@ -774,7 +827,7 @@ void AGunsmithMoverCharacter::PlayHitReact(int32 Seed, const FVector& HitNormal)
 			if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
 			{
 				FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
-				UE_LOG(LogGunsmithMoverCharacter, Log, TEXT("PIEInstance %d Playing hit react %d Frame %d Actual Frame %d"), WorldContext ? WorldContext->PIEInstance : -1, RandomIndex, Seed, WorldStateSubsystem->GetCurrentSimulationFrameIndex().ServerFrame);
+				UE_LOG(LogGunsmith, Log, TEXT("PIEInstance %d Playing hit react %d Frame %d Actual Frame %d"), WorldContext ? WorldContext->PIEInstance : -1, RandomIndex, Seed, WorldStateSubsystem->GetCurrentSimulationFrameIndex().ServerFrame);
 			}
 		}
 		
@@ -837,7 +890,7 @@ void AGunsmithMoverCharacter::DrawCurrentLocationDebug(bool bRoundToFullFrame, c
 
 			if (!PreviousFrame)
 			{
-				UE_LOG(LogGunsmithMoverCharacter, Error, TEXT("Unable to find history for frame %d. Cannot provide accurate VLOG data for %s"), PreviousFrameIndex, *GetName());
+				UE_LOG(LogGunsmith, Error, TEXT("Unable to find history for frame %d. Cannot provide accurate VLOG data for %s"), PreviousFrameIndex, *GetName());
 				UGSWorldStateSubsystem::ClearCustomVLogFrame(this);
 				return;
 			}
@@ -977,5 +1030,29 @@ void AGunsmithMoverCharacter::OnProjectileCreated(UGSProjectileState* Projectile
 		ProjectileState->OnProjectileHitTarget.AddDynamic(this, &AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget);
 		ProjectileState->OnProjectileDestroyed.AddDynamic(this, &AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed);
 	}
+#endif
+}
+
+void AGunsmithMoverCharacter::OnRep_bServerRequestedDebugMove()
+{
+#if !UE_BUILD_SHIPPING
+	if (Controller)
+	{
+		int32 ControllerID = Controller->GetUniqueID();
+		if (bServerRequestedDebugMove)
+		{
+			EnabledDebugMovers.AddUnique(ControllerID);
+		}
+		else
+		{
+			EnabledDebugMovers.Remove(ControllerID);
+		}
+	}
+	else
+	{
+		bAddToDebugMove = true;
+	}
+			
+	EnableDebugMovement(bServerRequestedDebugMove);
 #endif
 }

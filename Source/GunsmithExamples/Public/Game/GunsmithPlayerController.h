@@ -22,8 +22,8 @@ class UGunsmithCommonInputs : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|UI")
-	TObjectPtr<UInputMappingContext> UIInputMappingContext = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TArray<TObjectPtr<UInputMappingContext>> AdditionalInputMappingContexts;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|UI")
 	TObjectPtr<UInputAction> PauseInputAction = nullptr;
@@ -56,8 +56,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	void SetPaused(bool bPaused);
 
+	// Enables or disables the UI input map
 	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	void SetUIInputMode(bool bEnabled, UWidget* WidgetToFocus = nullptr);
+
+	// An easily accessible function to restart the pawn on the server. Not ideal for games trying to be secure
+	UFUNCTION(BlueprintCallable, Category="Gunsmith")
+	void RequestServerRestartPawn();
 
 	// Returns true if the last input was from a gamepad
 	bool WasLastUsingGamepad() const { return bWasLastUsingGamepad; }
@@ -66,13 +71,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TSubclassOf<UGunsmithCommonInputs> CommonInputs = nullptr;
 
+	void OnPausePressed(const FInputActionValue& Value);
+
 private:
 	UPROPERTY(Replicated)
 	FRotator SpawnRotation;
 	
 	bool bWasLastUsingGamepad = true;
 	
-	void OnPausePressed(const FInputActionValue& Value);
 	void OnCancelPressed(const FInputActionValue& Value);
 
 	UFUNCTION()
