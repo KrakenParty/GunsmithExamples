@@ -54,6 +54,7 @@ public:
 	virtual FVector GetVelocity() const override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void NotifyRestarted() override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 	virtual FRotator GetBaseAimRotation() const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -105,6 +106,8 @@ public:
 	void ForceDeath();
 
 protected:
+	virtual void SetupForPlayerController(APlayerController* PC);
+	
 	// IMoverInputProducerInterface Begin
 	// Entry point for input production. Do not override. To extend in derived character types, override OnProduceInput for native types or implement "Produce Input" blueprint event
 	virtual void ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult) override;
@@ -115,7 +118,7 @@ protected:
 
 	// AGSCharacter Begin
 	virtual void OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd) override;
-	virtual void OnADSStateChanged(bool bADSEnabled) override;
+	virtual void OnADSStateChanged_Implementation(bool bADSEnabled) override;
 	// AGSCharacter End
 
 	// Save the initial actor rotation into the Player Controllers ControlRotation
@@ -366,4 +369,6 @@ private:
 	
 	bool bIsFOVIncreasing = false;
 	float CurrentADSFOVAlpha = 0.0f;
+
+	bool bHasInitializedController = false;
 };

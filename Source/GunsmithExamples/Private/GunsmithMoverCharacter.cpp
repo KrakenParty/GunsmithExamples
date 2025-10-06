@@ -186,16 +186,7 @@ void AGunsmithMoverCharacter::BeginPlay()
 
 	if (APlayerController* PC = Cast<APlayerController>(Controller))
 	{
-		PC->PlayerCameraManager->ViewPitchMax = 89.0f;
-		PC->PlayerCameraManager->ViewPitchMin = -89.0f;
-
-		if (AGunsmithHUD* HUD = Cast<AGunsmithHUD>(PC->GetHUD()))
-		{
-			if (UGunsmithHUDWidget* HUDWidget = HUD->GetHUDWidget())
-			{
-				HUDWidget->SetupForCharacter(this);
-			}
-		}
+		SetupForPlayerController(PC);
 	}
 	
 	if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
@@ -347,6 +338,27 @@ void AGunsmithMoverCharacter::ForceDeath()
 	OnDeath(nullptr, FGSDamageRecord(), false);
 }
 
+void AGunsmithMoverCharacter::SetupForPlayerController(APlayerController* PC)
+{
+	if (!ensure(PC))
+	{
+		return;
+	}
+	
+	PC->PlayerCameraManager->ViewPitchMax = 89.0f;
+	PC->PlayerCameraManager->ViewPitchMin = -89.0f;
+
+	if (AGunsmithHUD* HUD = Cast<AGunsmithHUD>(PC->GetHUD()))
+	{
+		if (UGunsmithHUDWidget* HUDWidget = HUD->GetHUDWidget())
+		{
+			HUDWidget->SetupForCharacter(this);
+		}
+	}
+
+	bHasInitializedController = true;
+}
+
 void AGunsmithMoverCharacter::OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)
 {
 	FGSDefaultShootingInputs& DefaultInputs = InputCmd.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
@@ -380,9 +392,9 @@ void AGunsmithMoverCharacter::OnProduceShootingInput(float DeltaMs, FGSShootingI
 	DefaultInputs.EquippedWeaponSlot = CurrentWeaponSlot;
 }
 
-void AGunsmithMoverCharacter::OnADSStateChanged(bool bADSEnabled)
+void AGunsmithMoverCharacter::OnADSStateChanged_Implementation(bool bADSEnabled)
 {
-	Super::OnADSStateChanged(bADSEnabled);
+	Super::OnADSStateChanged_Implementation(bADSEnabled);
 
 	bIsFOVIncreasing = bADSEnabled;
 }
@@ -409,11 +421,30 @@ void AGunsmithMoverCharacter::NotifyRestarted()
 	}
 }
 
+void AGunsmithMoverCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (!bHasInitializedController)
+	{
+		if (APlayerController* PC = Cast<APlayerController>(NewController))
+		{
+			SetupForPlayerController(PC);	
+		}
+	}
+}
+
 void AGunsmithMoverCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 
 	SaveInitialActorRotation();
+
+	if (!bHasInitializedController)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		SetupForPlayerController(PC);
+	}
 
 #if !UE_BUILD_SHIPPING
 	if (Controller)
@@ -955,7 +986,20 @@ void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponen
 
 void AGunsmithMoverCharacter::OnDamageTaken(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted)
 {
-	const bool bShouldPlayReact = GetLocalRole() == ROLE_AutonomousProxy && !bIsDead && DamageRecord.Damage > 5.0f;
+	bool bMatchesPrediction = !bIsPredicted;
+
+	if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToSimulatedPredicted)
+	{
+		const bool bShouldPlayPredicted = IsValid(DamageRecord.Causer) && DamageRecord.Causer->GetLocalRole() == ROLE_AutonomousProxy;
+		bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
+	}
+	else if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToAllPredicted)
+	{
+		const bool bShouldPlayPredicted = GetLocalRole() == ROLE_AutonomousProxy;
+		bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
+	}
+	
+	const bool bShouldPlayReact = GetLocalRole() == ROLE_AutonomousProxy && !bIsDead && DamageRecord.Damage > 5.0f && bMatchesPrediction;
 
 	if (bShouldPlayReact)
 	{
