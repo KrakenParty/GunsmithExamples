@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Character/GSCharacter.h"
 #include "MoverSimulationTypes.h"
+#include "Character/GSAnimatedCharacter.h"
 #include "Netcode/GSRollbackInterface.h"
 #include "Weapon/Target/GSDamageTargetInterface.h"
 #include "GunsmithMoverCharacter.generated.h"
@@ -41,7 +42,7 @@ struct GUNSMITHEXAMPLES_API FGSCharacterInputConfig
  *	This is intentionally not using best practises in favour of being more readable
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSCharacter, public IMoverInputProducerInterface, public IGSDamageTargetInterface, public IGSRollbackInterface
+class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSAnimatedCharacter, public IMoverInputProducerInterface, public IGSDamageTargetInterface, public IGSRollbackInterface
 {
 	GENERATED_BODY()
 
@@ -85,7 +86,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MoverExamples")
 	virtual void RequestMoveByVelocity(const FVector& DesiredVelocity) { CachedMoveInputVelocity = DesiredVelocity; }
 	
-	void ServerStartDebugMovement();
+	void ServerStartDebugMovement(int32 MoveType);
 
 	/*** Inputs ***/
 
@@ -116,10 +117,11 @@ protected:
 	virtual void OnProduceMoverInput(float DeltaMs, FMoverInputCmdContext& OutInputCmd);
 	// IMoverInputProducerInterface End
 
-	// AGSCharacter Begin
+	// AGSAnimatedCharacter Begin
 	virtual void OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd) override;
 	virtual void OnADSStateChanged_Implementation(bool bADSEnabled) override;
-	// AGSCharacter End
+	virtual UGSCharacterAnimationData* GetAnimDataForWeaponType_Implementation(const UGSWeaponDataAsset* Weapon) override;
+	// AGSAnimatedCharacter End
 
 	// Save the initial actor rotation into the Player Controllers ControlRotation
 	void SaveInitialActorRotation();
@@ -286,22 +288,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Debug")
 	float TimeBetweenDebugJump = 1.6f;
 
-	UPROPERTY(ReplicatedUsing="OnRep_bServerRequestedDebugMove")
-	bool bServerRequestedDebugMove = false;
+	UPROPERTY(ReplicatedUsing="OnRep_ServerRequestedDebugMove")
+	int32 ServerRequestedDebugMove = 0;
 
 	virtual void DrawCurrentLocationDebug(bool bRoundToFullFrame, const FName& LogReference) override;
 	
 #if !UE_BUILD_SHIPPING
 public:
-	static TArray<uint32> EnabledDebugMovers;
+	static TArray<TTuple<uint32, int32>> EnabledDebugMovers;
 	
 	// Enables debug movement to move a character repeatedly left and right
-	void EnableDebugMovement(bool bDebugMove);
+	void EnableDebugMovement(int32 MoveType);
 
 private:
-	bool bAddToDebugMove = false;
-	
-	bool bIsDebugMoving = false;
+	int32 MoveTypeToAddToDebugMove = 0;
+	int32 DebugMoveType = 0;
 	float TimeDebugMoving = 0.0f;
 	bool bDebugMovingRight = false;
 
@@ -324,7 +325,7 @@ private:
 	void OnProjectileCreated(UGSProjectileState* ProjectileState);
 
 	UFUNCTION()
-	void OnRep_bServerRequestedDebugMove();
+	void OnRep_ServerRequestedDebugMove();
 
 	/*** Inputs ***/
 	

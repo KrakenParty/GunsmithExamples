@@ -11,7 +11,9 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"UMG",
-                "Gunsmith"
+				"Gunsmith",
+				"CoreUObject",
+				"GameplayAbilities"
 			]
 		}
 	],
@@ -393,6 +395,10 @@
 		{
 			"Name": "NetworkPredictionExtras",
 			"Enabled": false
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }

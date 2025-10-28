@@ -62,8 +62,13 @@ void UGSExecution_SpawnProjectileOnHit::Remove_Implementation(UGSShootingCompone
 {
 	Super::Remove_Implementation(ShootingComponent);
 
+	if (!ShootingComponent)
+	{
+		return;
+	}
+
 	AActor* Instigator = ShootingComponent->GetOwner();
-	if (Instigator)
+	if (Instigator && Instigator->GetWorld())
 	{
 		UGSWorldStateSubsystem* WorldStateSubsystem = Instigator->GetWorld()->GetSubsystem<UGSWorldStateSubsystem>();
 		if (WorldStateSubsystem)

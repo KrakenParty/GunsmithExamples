@@ -49,7 +49,7 @@ APawn* AGunsmithGameMode_HitResponse::SpawnDefaultPawnFor_Implementation(AContro
 		{
 			if (AGunsmithMoverCharacter* GunsmithMoverCharacter = Cast<AGunsmithMoverCharacter>(NewPawn))
 			{
-				GunsmithMoverCharacter->ServerStartDebugMovement();
+				GunsmithMoverCharacter->ServerStartDebugMovement(1);
 			}
 		}
 	}

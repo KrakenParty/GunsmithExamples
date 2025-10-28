@@ -26,6 +26,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Game/GunsmithExampleWeaponDataAsset.h"
+#include "Character/GSCharacterAnimationData.h"
 #include "Game/GunsmithGameState.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
@@ -54,8 +56,6 @@ static FAutoConsoleVariableRef CVarInvertMouseY(
 	TEXT("Flips mouse Y controls"));
 
 // ReSharper disable CppDeclaratorNeverUsed
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Impact_Character, "Weapon.Impact.Character");
-
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle, "Weapon.Tag.Rifle");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Alternate, "Weapon.Tag.Rifle.Alternate");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Premium, "Weapon.Tag.Rifle.Premium");
@@ -74,7 +74,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Rocket, "We
 // ReSharper restore CppDeclaratorNeverUsed
 
 #if !UE_BUILD_SHIPPING
-TArray<uint32> AGunsmithMoverCharacter::EnabledDebugMovers;
+TArray<TTuple<uint32, int32>> AGunsmithMoverCharacter::EnabledDebugMovers;
 #endif
 
 FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
@@ -88,7 +88,8 @@ FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 			return;
 		}
 
-		const bool bEnable = InParams[0].ToBool();
+		const int32 MoveType = FCString::Atoi(*InParams[0]);
+		const bool bEnable = MoveType > 0;
 		if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(InWorld, 0))
 		{
 			const uint32 ControllerID = PlayerController->GetUniqueID();
@@ -96,11 +97,19 @@ FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 #if !UE_BUILD_SHIPPING
 			if (bEnable)
 			{
-				AGunsmithMoverCharacter::EnabledDebugMovers.AddUnique(ControllerID);
+				AGunsmithMoverCharacter::EnabledDebugMovers.AddUnique({ ControllerID, MoveType });
 			}
 			else
 			{
-				AGunsmithMoverCharacter::EnabledDebugMovers.Remove(ControllerID);
+				for (int32 i = 0; i < AGunsmithMoverCharacter::EnabledDebugMovers.Num(); i++)
+				{
+					const TTuple<uint32, int32>& Controller = AGunsmithMoverCharacter::EnabledDebugMovers[i];
+
+					if (Controller.Key == ControllerID)
+					{
+						AGunsmithMoverCharacter::EnabledDebugMovers.RemoveAt(i--);	
+					}
+				}
 			}
 			
 			if (AGunsmithMoverCharacter* MoverCharacter = Cast<AGunsmithMoverCharacter>(PlayerController->GetPawn()))
@@ -299,10 +308,10 @@ void AGunsmithMoverCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
-void AGunsmithMoverCharacter::ServerStartDebugMovement()
+void AGunsmithMoverCharacter::ServerStartDebugMovement(int32 MoveType)
 {
-	bServerRequestedDebugMove = true;
-	MARK_PROPERTY_DIRTY_FROM_NAME(AGunsmithMoverCharacter, bServerRequestedDebugMove, this);
+	ServerRequestedDebugMove = MoveType;
+	MARK_PROPERTY_DIRTY_FROM_NAME(AGunsmithMoverCharacter, ServerRequestedDebugMove, this);
 }
 
 void AGunsmithMoverCharacter::BeginShooting()
@@ -451,15 +460,18 @@ void AGunsmithMoverCharacter::OnRep_Controller()
 	{
 		int32 ControllerID = Controller->GetUniqueID();
 		
-		if (bAddToDebugMove)
+		if (MoveTypeToAddToDebugMove > 0)
 		{
-			EnabledDebugMovers.Emplace(ControllerID);
-			bAddToDebugMove = false;
+			EnabledDebugMovers.Emplace(TTuple<uint32, int32>(ControllerID, MoveTypeToAddToDebugMove));
+			MoveTypeToAddToDebugMove = 0;
 		}
 
-		if (EnabledDebugMovers.Contains(ControllerID))
+		for (const TTuple<uint32, int32>& EnabledMover : EnabledDebugMovers)
 		{
-			EnableDebugMovement(true);
+			if (EnabledMover.Key == ControllerID)
+			{
+				EnableDebugMovement(true);
+			}
 		}
 	}
 #endif
@@ -489,7 +501,18 @@ void AGunsmithMoverCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 	FDoRepLifetimeParams Params;
 	Params.bIsPushBased = true;
-	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, bServerRequestedDebugMove, Params);
+	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, ServerRequestedDebugMove, Params);
+}
+
+UGSCharacterAnimationData* AGunsmithMoverCharacter::GetAnimDataForWeaponType_Implementation(
+	const UGSWeaponDataAsset* Weapon)
+{
+	if (const UGunsmithExampleWeaponDataAsset* ExampleAsset = Cast<UGunsmithExampleWeaponDataAsset>(Weapon))
+	{
+		return ExampleAsset->AnimationData.GetDefaultObject();
+	}
+
+	return nullptr;
 }
 
 FVector AGunsmithMoverCharacter::GetVelocity() const
@@ -585,7 +608,7 @@ void AGunsmithMoverCharacter::OnProduceMoverInput(float DeltaMs, FMoverInputCmdC
 	}
 
 #if !UE_BUILD_SHIPPING
-	if (bIsDebugMoving)
+	if (DebugMoveType > 0)
 	{
 		const FVector MoveIntent = GetActorRightVector() * (bDebugMovingRight ? 1 : -1) * (1.0f - FMath::RandRange(0.01f, 0.02f));		
 		CharacterInputs.SetMoveInput(EMoveInputType::DirectionalIntent, MoveIntent);
@@ -988,15 +1011,19 @@ void AGunsmithMoverCharacter::OnDamageTaken(UGSHealthComponent* AffectedHealthCo
 {
 	bool bMatchesPrediction = !bIsPredicted;
 
-	if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToSimulatedPredicted)
+	// Prediction only works in fixed tick mode
+	if (UGSNetworkLibrary::GetTickingPolicy(this) == ENetworkPredictionTickingPolicy::Fixed)
 	{
-		const bool bShouldPlayPredicted = IsValid(DamageRecord.Causer) && DamageRecord.Causer->GetLocalRole() == ROLE_AutonomousProxy;
-		bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
-	}
-	else if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToAllPredicted)
-	{
-		const bool bShouldPlayPredicted = GetLocalRole() == ROLE_AutonomousProxy;
-		bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
+		if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToSimulatedPredicted)
+		{
+			const bool bShouldPlayPredicted = IsValid(DamageRecord.Causer) && DamageRecord.Causer->GetLocalRole() == ROLE_AutonomousProxy;
+			bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
+		}
+		else if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToAllPredicted)
+		{
+			const bool bShouldPlayPredicted = GetLocalRole() == ROLE_AutonomousProxy;
+			bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
+		}
 	}
 	
 	const bool bShouldPlayReact = GetLocalRole() == ROLE_AutonomousProxy && !bIsDead && DamageRecord.Damage > 5.0f && bMatchesPrediction;
@@ -1009,16 +1036,16 @@ void AGunsmithMoverCharacter::OnDamageTaken(UGSHealthComponent* AffectedHealthCo
 }
 
 #if !UE_BUILD_SHIPPING
-void AGunsmithMoverCharacter::EnableDebugMovement(bool bDebugMove)
+void AGunsmithMoverCharacter::EnableDebugMovement(int32 MoveType)
 {
-	bIsDebugMoving = bDebugMove;
+	DebugMoveType = MoveType;
 
 	TimeSinceDebugJump = FMath::RandRange(0.0f, TimeBetweenDebugJump);
 }
 
 void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 {
-	if (bIsDebugMoving && !bIsDead)
+	if (DebugMoveType > 0 && !bIsDead)
 	{
 		TimeDebugMoving += DeltaTime;
 
@@ -1030,7 +1057,7 @@ void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 
 		TimeSinceDebugJump += DeltaTime;
 
-		if (TimeBetweenDebugJump > 0.0f && TimeSinceDebugJump > TimeBetweenDebugJump)
+		if (DebugMoveType == 2 && TimeBetweenDebugJump > 0.0f && TimeSinceDebugJump > TimeBetweenDebugJump)
 		{
 			bIsDebugJumping = true;
 			TimeSinceDebugJump = 0.0f;
@@ -1077,26 +1104,34 @@ void AGunsmithMoverCharacter::OnProjectileCreated(UGSProjectileState* Projectile
 #endif
 }
 
-void AGunsmithMoverCharacter::OnRep_bServerRequestedDebugMove()
+void AGunsmithMoverCharacter::OnRep_ServerRequestedDebugMove()
 {
 #if !UE_BUILD_SHIPPING
 	if (Controller)
 	{
 		int32 ControllerID = Controller->GetUniqueID();
-		if (bServerRequestedDebugMove)
+		if (ServerRequestedDebugMove > 0)
 		{
-			EnabledDebugMovers.AddUnique(ControllerID);
+			EnabledDebugMovers.AddUnique(TTuple<uint32, int32>(ControllerID, ServerRequestedDebugMove));
 		}
 		else
 		{
-			EnabledDebugMovers.Remove(ControllerID);
+			for (int32 i = 0; i < EnabledDebugMovers.Num(); i++)
+			{
+				const TTuple<uint32, int32>& Mover = EnabledDebugMovers[i];
+
+				if (Mover.Key == ControllerID)
+				{
+					EnabledDebugMovers.RemoveAt(i--);	
+				}
+			}
 		}
 	}
 	else
 	{
-		bAddToDebugMove = true;
+		MoveTypeToAddToDebugMove = true;
 	}
 			
-	EnableDebugMovement(bServerRequestedDebugMove);
+	EnableDebugMovement(ServerRequestedDebugMove);
 #endif
 }

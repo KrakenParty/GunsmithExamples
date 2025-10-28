@@ -14,7 +14,8 @@ public class GunsmithExamples : ModuleRules
 			{
 				"Core",
 				"GameplayTags", 
-				"Mover"
+				"Mover",
+				"GameplayAbilities",
 			}
 		);
 			
@@ -35,7 +36,8 @@ public class GunsmithExamples : ModuleRules
 				"OnlineSubsystem",
 				"AIModule",
 				"Sockets",
-				"CommonLoadingScreen"
+				"CommonLoadingScreen",
+				"ModelViewViewModel"
 			}
 		);
 	}
