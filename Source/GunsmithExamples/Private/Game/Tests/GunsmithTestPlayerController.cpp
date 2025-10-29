@@ -13,7 +13,7 @@
 #include "Weapon/GSShootingComponent.h"
 #include "World/GSWorldStateSubsystem.h"
 
-FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithStartAccuracyTest
+static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithStartAccuracyTest
 (
 	TEXT("Gunsmith.Tests.Accuracy"),
 	TEXT("Once set, characters will shoot at the target character index and record hit rate. Use -1 to stop again. Optional second parameter to specify the bone name to shoot at."),

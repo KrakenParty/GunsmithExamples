@@ -62,7 +62,10 @@ void UGunsmithMultiplayerHUDWidget::UpdateLobbyOwnerWidgetVisibility(bool bShow)
 {
 	if (bShow)
 	{
-		LobbyOwnerWidget->Activate();
+		if (!LobbyOwnerWidget->GetIsActive())
+		{
+			LobbyOwnerWidget->Activate();
+		}
 	}
 	else if (LobbyOwnerWidget->GetIsActive())
 	{

@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"EngineAssociation": "5.6",
-	"Category": "",
+	"Category": "Gameplay",
 	"Description": "An example project for the Gunsmith plugin",
 	"Modules": [
 		{
@@ -12,8 +12,7 @@
 				"Engine",
 				"UMG",
 				"Gunsmith",
-				"CoreUObject",
-				"GameplayAbilities"
+				"CoreUObject"
 			]
 		}
 	],

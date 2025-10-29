@@ -77,7 +77,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Rocket, "We
 TArray<TTuple<uint32, int32>> AGunsmithMoverCharacter::EnabledDebugMovers;
 #endif
 
-FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
+static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 (
 	TEXT("Gunsmith.Debug.MoveCharacter"),
 	TEXT("Moves the local character for weapon accuracy testing"),
