@@ -24,6 +24,9 @@ public:
 	// Sets the match state to InProgress
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetWeapon(const FString& WeaponString);
 	
 	void SetLobbyOwner(bool bLobbyOwner);
 	bool GetIsLobbyOwner() const { return bIsLobbyOwner; }

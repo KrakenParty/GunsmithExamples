@@ -5,14 +5,34 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GSGameplayLibrary.h"
 #include "GunsmithBlueprintFunctionLibrary.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/Engine.h"
+#include "Game/GunsmithSpectatorPawn.h"
 #include "GameFramework/InputDeviceSubsystem.h"
+#include "GameFramework/Pawn.h"
+#include "Health/GSHealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Net/Core/PushModel/PushModel.h"
 #include "Netcode/GSNetworkLibrary.h"
 #include "UI/GunsmithHUD.h"
+
+static FAutoConsoleCommandWithWorld FCmdGunsmithKillPlayer
+(
+	TEXT("Gunsmith.KillPlayer"),
+	TEXT("Kills the pawn controlled by the player who executes the function"),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](const UWorld* InWorld)
+	{
+		if (AGunsmithPlayerController* PlayerController = Cast<AGunsmithPlayerController>(UGameplayStatics::GetPlayerController(InWorld, 0)))
+		{
+			PlayerController->Server_KillPawn();
+		}
+	}),
+	ECVF_Cheat
+);
 
 void AGunsmithPlayerController::BeginPlay()
 {
@@ -26,6 +46,23 @@ void AGunsmithPlayerController::BeginPlay()
 	{
 		InputDeviceSubsystem->OnInputHardwareDeviceChanged.AddDynamic(this, &AGunsmithPlayerController::OnHardwareDeviceChanged);
 		OnHardwareDeviceChanged(GetPlatformUserId(), FInputDeviceId());
+	}
+}
+
+void AGunsmithPlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+
+	UpdateSpectatorState();
+}
+
+void AGunsmithPlayerController::SetPawn(APawn* InPawn)
+{
+	Super::SetPawn(InPawn);
+
+	if (UGSNetworkLibrary::HasAuthority(this))
+	{
+		UpdateSpectatorState();
 	}
 }
 
@@ -69,17 +106,6 @@ bool AGunsmithPlayerController::ShouldShowMouseCursor() const
 	return false;
 }
 
-ASpectatorPawn* AGunsmithPlayerController::SpawnSpectatorPawn()
-{
-	// Server is spawned with the correct rotation, client never receives this as ControlRotation is not replicated
-	if (GetWorld()->IsNetMode(NM_Client))
-	{
-		SetControlRotation(SpawnRotation);
-	}
-	
-	return Super::SpawnSpectatorPawn();
-}
-
 void AGunsmithPlayerController::SetInitialLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation)
 {
 	Super::SetInitialLocationAndRotation(NewLocation, NewRotation);
@@ -98,6 +124,17 @@ void AGunsmithPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Params.bIsPushBased = true;
 	Params.Condition = COND_OwnerOnly;
 	DOREPLIFETIME_WITH_PARAMS_FAST(AGunsmithPlayerController, SpawnRotation, Params);
+}
+
+ASpectatorPawn* AGunsmithPlayerController::SpawnSpectatorPawn()
+{
+	// Server is spawned with the correct rotation, client never receives this as ControlRotation is not replicated
+	if (GetWorld()->IsNetMode(NM_Client))
+	{
+		SetControlRotation(SpawnRotation);
+	}
+	
+	return Super::SpawnSpectatorPawn();
 }
 
 void AGunsmithPlayerController::SetPaused(bool bPaused)
@@ -141,12 +178,33 @@ void AGunsmithPlayerController::RequestServerRestartPawn()
 	ServerRestartPlayer();
 }
 
+void AGunsmithPlayerController::Server_KillPawn_Implementation()
+{
+#if !UE_BUILD_SHIPPING
+	if (UGSHealthComponent* HealthComponent = UGSGameplayLibrary::GetHealthComponentFromActor(GetPawn()))
+	{
+		FGSDamageRequest DamageRequest;
+		DamageRequest.BaseDamage = 999999.0f;
+		DamageRequest.Instigator = this;
+		DamageRequest.DamageCauser = GetPawn();
+		
+		HealthComponent->ApplyDamage(DamageRequest);
+	}
+#endif
+}
+
 void AGunsmithPlayerController::OnPausePressed(const FInputActionValue& Value)
 {
 	if (AGunsmithHUD* GunsmithHUD = GetHUD<AGunsmithHUD>())
 	{
 		SetPaused(GunsmithHUD->HasAnyActiveWidgets());
 	}
+}
+
+void AGunsmithPlayerController::UpdateSpectatorState()
+{
+	APawn* CurrentPawn = GetPawn();
+	ChangeState(CurrentPawn == nullptr ? NAME_Spectating : NAME_Playing);
 }
 
 void AGunsmithPlayerController::OnCancelPressed(const FInputActionValue& Value)
@@ -172,5 +230,14 @@ void AGunsmithPlayerController::OnHardwareDeviceChanged(const FPlatformUserId Us
 				OnDeviceChanged.Broadcast(bWasLastUsingGamepad);
 			}
 		}
+	}
+}
+
+void AGunsmithPlayerController::OnControlledPawnDeath(UGSHealthComponent* HealthComponent,
+	const FGSDamageRecord& DamageRecord, bool bIsPredicted)
+{
+	if (!bIsPredicted)
+	{
+		ChangeState(NAME_Spectating);
 	}
 }

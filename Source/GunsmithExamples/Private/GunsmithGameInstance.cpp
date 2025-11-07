@@ -2,10 +2,13 @@
 
 #include "GunsmithGameInstance.h"
 
+#include "GSGameState.h"
 #include "Online.h"
 #include "OnlineSessionSettings.h"
+#include "Engine/World.h"
 #include "Online/OnlineSessionNames.h"
 #include "Game/Modes/Multiplayer/GunsmithMultiplayerGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 
 void UGunsmithGameInstance::Init()
@@ -19,8 +22,30 @@ void UGunsmithGameInstance::Init()
 	}
 }
 
+void UGunsmithGameInstance::StartRecordingReplay(const FString& InName, const FString& FriendlyName,
+	const TArray<FString>& AdditionalOptions, TSharedPtr<IAnalyticsProvider> AnalyticsProvider)
+{
+	Super::StartRecordingReplay(InName, FriendlyName, AdditionalOptions, AnalyticsProvider);
+
+	if (AGSGameState* GameState = GetWorld()->GetGameState<AGSGameState>())
+	{
+		GameState->SaveCurrentFrameForReplays();
+	}
+}
+
+bool UGunsmithGameInstance::PlayReplay(const FString& InName, UWorld* WorldOverride,
+                                       const TArray<FString>& AdditionalOptions)
+{
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		PlayerController->ChangeState(NAME_Spectating);
+	}
+	
+	return Super::PlayReplay(InName, WorldOverride, AdditionalOptions);
+}
+
 void UGunsmithGameInstance::OnSessionInviteAccepted(const bool bWasSuccessful, const int32 ControllerId,
-	FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult)
+                                                    FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult)
 {
 	if (bWasSuccessful)
 	{

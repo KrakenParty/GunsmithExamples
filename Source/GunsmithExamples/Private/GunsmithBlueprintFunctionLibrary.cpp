@@ -6,7 +6,7 @@
 #include "NetworkPredictionWorldManager.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/GSMoverComponent.h"
-#include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
+#include "Engine/DemoNetDriver.h"
 #include "GameFramework/PlayerController.h"
 
 ULocalPlayer* UGunsmithBlueprintFunctionLibrary::GetLocalPlayerFromPlayerController(APlayerController* PlayerController)
@@ -68,4 +68,23 @@ UWidget* UGunsmithBlueprintFunctionLibrary::GetRootFocusWidget(UWidget* Widget)
 	}
 
 	return Widget;
+}
+
+bool UGunsmithBlueprintFunctionLibrary::IsReplayPlaying(UObject* WorldContextObject)
+{
+	if (WorldContextObject)
+	{
+		if (UWorld* World = WorldContextObject->GetWorld())
+		{
+			if (UDemoNetDriver* DemoNetDriver = World->GetDemoNetDriver())
+			{
+				if (DemoNetDriver->IsPlaying())
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }

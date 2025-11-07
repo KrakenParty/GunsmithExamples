@@ -167,7 +167,7 @@ void AGunsmithMultiplayerGameMode::OnPawnDeath(UGSHealthComponent* HealthCompone
 		if (EndOfRoundTime > 0.0f)
 		{
 			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &AGunsmithMultiplayerGameMode::RestartRound), EndOfRoundTime, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &AGunsmithMultiplayerGameMode::RestartRoundAfterTimer), EndOfRoundTime, false);
 		}
 		else
 		{
@@ -176,7 +176,12 @@ void AGunsmithMultiplayerGameMode::OnPawnDeath(UGSHealthComponent* HealthCompone
 	}
 }
 
-void AGunsmithMultiplayerGameMode::RestartRound()
+void AGunsmithMultiplayerGameMode::RestartRoundAfterTimer()
+{
+	RestartRound();
+}
+
+void AGunsmithMultiplayerGameMode::RestartRound(const FGameplayTag& SpecificWeaponTag)
 {
 	AGunsmithMultiplayerGameState* GSGameState = GetGameState<AGunsmithMultiplayerGameState>();
 
@@ -185,9 +190,43 @@ void AGunsmithMultiplayerGameMode::RestartRound()
 		return;
 	}
 
-	const TArray<TObjectPtr<UGSWeaponDataAsset>>& WeaponPool = GSGameState->GetWeaponPool();
+	TArray<FGSMultiplayerWeaponPoolLoadouts> WeaponPool = GSGameState->GetWeaponPool();
 	
 	if (!ensureAlways(WeaponPool.Num() != 0))
+	{
+		return;
+	}
+	
+	FGSMultiplayerWeaponPoolLoadouts Loadout;
+
+	// Try to find a specific weapon
+	if (SpecificWeaponTag.IsValid())
+	{
+		for (const FGSMultiplayerWeaponPoolLoadouts& CurrentLoadout : WeaponPool)
+		{
+			if (CurrentLoadout.WeaponData && CurrentLoadout.WeaponData->UniqueTag == SpecificWeaponTag)
+			{
+				Loadout = CurrentLoadout;
+				break;
+			}
+		}
+	}
+
+	// Select a random weapon
+	while (WeaponPool.Num() > 0 && !Loadout.WeaponData)
+	{
+		const int32 RandomWeapon = FMath::RandRange(0, WeaponPool.Num() - 1);
+		FGSMultiplayerWeaponPoolLoadouts RandomLoadout = WeaponPool[RandomWeapon];
+		WeaponPool.RemoveAt(RandomWeapon);
+
+		if (RandomLoadout.WeaponData)
+		{
+			Loadout = RandomLoadout;
+			break;
+		}
+	}
+
+	if (!Loadout.WeaponData)
 	{
 		return;
 	}
@@ -202,11 +241,12 @@ void AGunsmithMultiplayerGameMode::RestartRound()
 		AvailablePlayerStarts.Emplace(PlayerStart);
 	}
 	
-	TArray<TSubclassOf<UGSWeaponAttachment>> TempPool = GSGameState->GetAttachmentPool();
+	TArray<TSubclassOf<UGSWeaponAttachment>> TempPool = Loadout.Attachments;
+	TempPool.Append(GSGameState->GetGlobalAttachmentPool());
 
 	// Create the random equip data
 	FGSEquipData EquipData;
-	EquipData.WeaponData = WeaponPool[FMath::RandRange(0, WeaponPool.Num() - 1)];
+	EquipData.WeaponData = Loadout.WeaponData;
 
 	for (int32 i = 0; i < NumAttachments; i++)
 	{

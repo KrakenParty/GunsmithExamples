@@ -45,9 +45,11 @@ public:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual bool ShouldShowMouseCursor() const override;
-	virtual ASpectatorPawn* SpawnSpectatorPawn() override;
 	virtual void SetInitialLocationAndRotation(const FVector& NewLocation, const FRotator& NewRotation) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual ASpectatorPawn* SpawnSpectatorPawn() override;
+	virtual void OnRep_Pawn() override;
+	virtual void SetPawn(APawn* InPawn) override;
 	// APlayerController End
 
 	FGunsmithDeviceChangedDelegate OnDeviceChanged;
@@ -64,6 +66,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	void RequestServerRestartPawn();
 
+	// A cheat to kill the controllers current pawn
+	UFUNCTION(Server, Reliable, Category="Gunsmith")
+	void Server_KillPawn();
+
 	// Returns true if the last input was from a gamepad
 	bool WasLastUsingGamepad() const { return bWasLastUsingGamepad; }
 
@@ -72,6 +78,8 @@ protected:
 	TSubclassOf<UGunsmithCommonInputs> CommonInputs = nullptr;
 
 	void OnPausePressed(const FInputActionValue& Value);
+
+	void UpdateSpectatorState();
 
 private:
 	UPROPERTY(Replicated)
@@ -83,4 +91,7 @@ private:
 
 	UFUNCTION()
 	void OnHardwareDeviceChanged(const FPlatformUserId UserId, const FInputDeviceId DeviceId);
+
+	UFUNCTION()
+	void OnControlledPawnDeath(UGSHealthComponent* HealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted);
 };

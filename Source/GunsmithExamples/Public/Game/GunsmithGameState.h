@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GSGameState.h"
 #include "LoadingProcessInterface.h"
 #include "GameFramework/GameState.h"
 #include "Performance/GSPreloadDataRow.h"
@@ -16,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGunsmithPlayerListChangedDelegate, 
  *	A simple GameState to accompany the GunsmithGameMode
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithGameState : public AGameState, public ILoadingProcessInterface
+class GUNSMITHEXAMPLES_API AGunsmithGameState : public AGSGameState, public ILoadingProcessInterface
 {
 	GENERATED_BODY()
 

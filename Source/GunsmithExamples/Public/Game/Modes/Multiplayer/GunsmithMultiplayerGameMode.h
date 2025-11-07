@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Game/GunsmithGameMode.h"
 #include "GunsmithMultiplayerGameMode.generated.h"
 
@@ -23,6 +24,9 @@ class GUNSMITHEXAMPLES_API AGunsmithMultiplayerGameMode : public AGunsmithGameMo
 public:
 	static FName SessionName;
 	static FName SearchParam;
+
+	// Reset all player states for a new round start
+	void RestartRound(const FGameplayTag& SpecificWeaponTag = FGameplayTag::EmptyTag);
 	
 protected:
 	// How long to wait before spawning a character after death
@@ -50,9 +54,8 @@ protected:
 private:
 	TWeakObjectPtr<AGunsmithMultiplayerPC> LobbyOwner;
 	TArray<TWeakObjectPtr<APlayerStart>> AvailablePlayerStarts;
-	
-	// Reset all player states for a new round start
-	void RestartRound();
+
+	void RestartRoundAfterTimer();
 
 	static FOnlineSessionSettings CreateSessionSettings(bool bAllowInvites);
 };

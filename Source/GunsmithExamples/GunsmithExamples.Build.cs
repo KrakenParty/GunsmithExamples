@@ -37,7 +37,10 @@ public class GunsmithExamples : ModuleRules
 				"AIModule",
 				"Sockets",
 				"CommonLoadingScreen",
-				"ModelViewViewModel"
+				"ModelViewViewModel", 
+				"Niagara",
+				"PhysicsCore",
+				"DeveloperSettings"
 			}
 		);
 	}

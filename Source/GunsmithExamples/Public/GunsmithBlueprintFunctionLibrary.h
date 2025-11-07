@@ -34,4 +34,8 @@ public:
 	// Get the root focus widget at the top of the tree via UWidget->GetDesiredFocusWidget
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
 	static UWidget* GetRootFocusWidget(UWidget* Widget);
+
+	// Return true if the world is currently playing a replay
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Simulation", meta = (WorldContext="WorldContextObject"))
+	static bool IsReplayPlaying(UObject* WorldContextObject);
 };

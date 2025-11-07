@@ -16,6 +16,7 @@ class GUNSMITHEXAMPLES_API AGunsmithGameMode : public AGameMode
 	
 public:
 	// AGameModeBase Begin
+	virtual bool IsHandlingReplays() override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	// AGameModeBase End
 

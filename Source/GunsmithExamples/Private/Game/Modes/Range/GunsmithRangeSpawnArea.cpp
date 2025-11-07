@@ -4,7 +4,6 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
-#include "Game/Modes/Range/GunsmithRangeGameMode.h"
 
 AGunsmithRangeSpawnArea::AGunsmithRangeSpawnArea()
 {
@@ -24,11 +23,6 @@ AGunsmithRangeSpawnArea::AGunsmithRangeSpawnArea()
 void AGunsmithRangeSpawnArea::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (AGunsmithRangeGameMode* RangeGameMode = GetWorld()->GetAuthGameMode<AGunsmithRangeGameMode>())
-	{
-		RangeGameMode->RegisterSpawnArea(this);
-	}
 }
 
 void AGunsmithRangeSpawnArea::OnConstruction(const FTransform& Transform)

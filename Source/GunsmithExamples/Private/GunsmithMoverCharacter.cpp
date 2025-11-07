@@ -10,7 +10,6 @@
 #include "GameFramework/PlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GSDeveloperSettings.h"
 #include "GSLog.h"
 #include "Netcode/GSRollbackComponent.h"
 #include "InputAction.h"
@@ -25,10 +24,10 @@
 #include "Character/GSSkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/SphereComponent.h"
 #include "Game/GunsmithExampleWeaponDataAsset.h"
 #include "Character/GSCharacterAnimationData.h"
 #include "Game/GunsmithGameState.h"
+#include "Game/GunsmithShootingComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
@@ -37,6 +36,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Netcode/GSNetworkLibrary.h"
 #include "Netcode/GSRollbackProxy.h"
+#include "Sound/SoundBase.h"
 #include "UI/GunsmithHUD.h"
 #include "UI/GunsmithHUDWidget.h"
 #include "VisualLogger/VisualLogger.h"
@@ -129,7 +129,7 @@ namespace GunsmithMoverCharacterNames
 };
 
 AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass(GSCharacterNames::ShootingComponentName, UGunsmithShootingComponent::StaticClass()))
 {		
 	CharacterMotionComponent = CreateDefaultSubobject<UGSMoverComponent>(GunsmithMoverCharacterNames::CharacterMotionComponent);
 	ensure(CharacterMotionComponent);
@@ -174,16 +174,11 @@ void AGunsmithMoverCharacter::BeginPlay()
 				constexpr float SizeMultiplier = 1.4f;
 				const FRotator CapsuleRelativeRotation = CapsuleComponent->GetRelativeRotation();
 				const FVector CapsuleCenter = CapsuleRelativeRotation.Quaternion().GetUpVector() * CapsuleComponent->GetScaledCapsuleHalfHeight();
-				RollbackProxy->SetupCapsuleComponent(NAME_None, CapsuleCenter, CapsuleRelativeRotation, CapsuleComponent->GetScaledCapsuleRadius() * SizeMultiplier, CapsuleComponent->GetScaledCapsuleHalfHeight() * SizeMultiplier, false);
+				RollbackProxy->SetupCapsuleComponent(NAME_None, CapsuleComponent, CapsuleCenter, CapsuleRelativeRotation, CapsuleComponent->GetScaledCapsuleRadius() * SizeMultiplier, CapsuleComponent->GetScaledCapsuleHalfHeight() * SizeMultiplier, false);
 			}
 
 			// Extract bone info from the skeletal mesh to create the complex collision
-			RollbackProxy->SetupSkeletalMeshRenderer(Mesh, RollbackBones);
-
-			// Remove collision from projectiles but make sure we can still trace against it for weapon visibility
-			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-			Mesh->SetCollisionResponseToChannel(UGSDeveloperSettings::Get()->DefaultTargetTraceCollisionChannel, ECR_Block);
+			RollbackProxy->SetupSkeletalMeshComponent(Mesh, RollbackBones);
 
 			if (UGSNetworkLibrary::IsServer(this))
 			{
@@ -406,6 +401,11 @@ void AGunsmithMoverCharacter::OnADSStateChanged_Implementation(bool bADSEnabled)
 	Super::OnADSStateChanged_Implementation(bADSEnabled);
 
 	bIsFOVIncreasing = bADSEnabled;
+
+	if (USoundBase* SoundToPlay = bADSEnabled ? StartADSSound : EndADSSound)
+	{
+		UGameplayStatics::PlaySound2D(this, SoundToPlay);
+	}
 }
 
 void AGunsmithMoverCharacter::SaveInitialActorRotation()

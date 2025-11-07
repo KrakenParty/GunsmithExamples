@@ -23,14 +23,19 @@ class GUNSMITHEXAMPLES_API AGunsmithHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-	// AActor Begin
+	// AHUD Begin
 	virtual void PostInitializeComponents() override;
 	virtual void BeginDestroy() override;
-	// AActor End
+	virtual void ShowHUD() override;
+	// AHUD End
 
 	// Get the main Gunsmith HUD widget
 	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	UGunsmithHUDWidget* GetHUDWidget() const { return HUDWidget; }
+
+	// Sets up the HUD to watch the new spectated pawn
+	UFUNCTION(BlueprintCallable, Category="Gunsmith")
+	void SetSpectatedPawn(APawn* NewPawn);
 
 	// Sets the HUD to the paused state. Returns a focus widget if one exists
 	UWidget* SetPaused(bool bPaused) const;

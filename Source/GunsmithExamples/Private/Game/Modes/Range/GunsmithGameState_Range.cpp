@@ -149,9 +149,9 @@ void AGunsmithGameState_Range::OnPawnSet(APlayerState* Player, APawn* NewPawn, A
 
 void AGunsmithGameState_Range::OnDamageDealt(const FGSDamageRecord& DamageRecord)
 {
-	if (bIsPractiseActive)
+	if (bIsPractiseActive && DamageRecord.bKilledTarget)
 	{
-		SetCurrentScore(CurrentScore + DamageRecord.Damage);
+		SetCurrentScore(CurrentScore + 1);
 	}
 }
 

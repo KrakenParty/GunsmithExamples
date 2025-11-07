@@ -5,11 +5,10 @@
 
 #include "AIController.h"
 #include "GSGameplayLibrary.h"
-#include "GunsmithMoverCharacter.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Game/Modes/Range/GunsmithGameState_Range.h"
-#include "Game/Modes/Range/GunsmithRangeSpawnArea.h"
+#include "Game/Modes/Range/GunsmithRangeTargetActor.h"
 #include "GameFramework/PlayerState.h"
 #include "Weapon/GSShootingComponent.h"
 #include "Weapon/Clip/GSClipBehavior.h"
@@ -21,10 +20,7 @@ void AGunsmithRangeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UWorld* World = GetWorld();
-	AIController = World->SpawnActor<AAIController>();
-
-	if (SpawnArea.IsValid())
+	if (TargetActors.Num() > 0 && !StartGameTimer.IsValid())
 	{
 		StartGame();
 	}
@@ -38,74 +34,75 @@ void AGunsmithRangeGameMode::BeginPlay()
 	}
 }
 
-APawn* AGunsmithRangeGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
+void AGunsmithRangeGameMode::RegisterTargetActor(AGunsmithRangeTargetActor* TargetActor)
 {
-	// Override spawn location for AI characters
-	if (NewPlayer->IsA(AAIController::StaticClass()))
+	TargetActors.Emplace(TargetActor);
+
+	if (TargetActors.Num() > NumActiveTargets && !StartGameTimer.IsValid())
 	{
-		FVector SpawnLocation = FVector::ZeroVector;
-		FRotator SpawnRotation = FRotator::ZeroRotator;
-
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		if (SpawnArea.IsValid())
+		StartGameTimer = GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 		{
-			SpawnLocation = SpawnArea->GetRandomSpawnLocation(MaxWeaponRange - SpawnWallThickness, LastSpawnDistance);
-			SpawnRotation = SpawnArea->GetActorRotation().GetInverse();
-		}
-
-		const FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLocation);
-		return SpawnDefaultPawnAtTransform(NewPlayer, SpawnTransform);
+			StartGame();	
+		});
 	}
-	
-	return Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
+
+	TargetActor->OnActiveStateChanged.AddUObject(this, &AGunsmithRangeGameMode::OnTargetActiveStateChanged, TargetActor);
 }
 
-AActor* AGunsmithRangeGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
+void AGunsmithRangeGameMode::ActivateTargets(int32 NumTargets, float TimeBeforeActivation, AGunsmithRangeTargetActor* IgnoredTarget)
 {
-	if (Player->IsA(AAIController::StaticClass()) && SpawnArea.IsValid())
+	if (TimeBeforeActivation > 0.0f && !ActivateTimer.IsValid())
 	{
-		return SpawnArea.Get();
-	}
-	
-	return Super::FindPlayerStart_Implementation(Player, IncomingName);
-}
-
-void AGunsmithRangeGameMode::RegisterSpawnArea(AGunsmithRangeSpawnArea* NewArea)
-{
-	SpawnArea = NewArea;
-
-	if (AIController)
-	{
-		StartGame();
-	}
-}
-
-void AGunsmithRangeGameMode::RestartAIPawns(float TimeBeforeSpawn)
-{
-	// Destroy any active pawns
-	if (AIController)
-	{
-		if (AGunsmithMoverCharacter* Pawn = AIController->GetPawn<AGunsmithMoverCharacter>())
+		GetWorld()->GetTimerManager().SetTimer(ActivateTimer, FTimerDelegate::CreateWeakLambda(this, [this, NumTargets, IgnoredTarget]()
 		{
-			Pawn->ForceDeath();
+			ActivateTargets(NumTargets, 0.0f, IgnoredTarget);	
+		}), TimeBeforeActivation, false);
+		return;
+	}
+
+	ActivateTimer.Invalidate();
+	
+	for (int32 TargetIndex = 0; TargetIndex < NumTargets; TargetIndex++)
+	{
+		TArray<TWeakObjectPtr<AGunsmithRangeTargetActor>> ActorsCopy = TargetActors;
+		while (ActorsCopy.Num() > 0)
+		{
+			const int32 RandomTarget = FMath::RandRange(0, ActorsCopy.Num() - 1);
+			const TWeakObjectPtr<AGunsmithRangeTargetActor>& Target = ActorsCopy[RandomTarget];
+			const float TargetRange = GetTargetDistanceFromRange(Target);
+			
+			if (Target.IsValid() && !Target->IsActive() && Target != IgnoredTarget && TargetRange <= MaxWeaponRange)
+			{
+				Target->SetTargetActive(true);
+				break;
+			}
+
+			ActorsCopy.RemoveAt(RandomTarget);
 		}
 	}
+}
+
+void AGunsmithRangeGameMode::ReactivateTargets(float TimeBeforeSpawn)
+{
+	bIgnoreInactiveCallback = true;
 	
-	// Clear any existing respawns
-	for (FTimerHandle& Handle : PendingRespawnHandles)
+	for (const TWeakObjectPtr<AGunsmithRangeTargetActor>& Target : TargetActors)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(Handle);
+		if (Target.IsValid())
+		{
+			Target->SetTargetActive(false);
+		}
 	}
 
-	PendingRespawnHandles.Reset();
+	bIgnoreInactiveCallback = false;
 
-	// Start a new respawn
-	if (AIController)
+	if (ActivateTimer.IsValid())
 	{
-		StartRespawn(AIController, TimeBeforeSpawn);
+		GetWorld()->GetTimerManager().ClearTimer(ActivateTimer);
+		ActivateTimer.Invalidate();
 	}
+
+	ActivateTargets(NumActiveTargets, TimeBeforeSpawn);
 }
 
 void AGunsmithRangeGameMode::StartPractise()
@@ -136,7 +133,7 @@ void AGunsmithRangeGameMode::StartPractise()
 				}
 			}
 			
-			RestartAIPawns(StartUpTime);
+			ReactivateTargets(StartUpTime);
 		}
 	}
 }
@@ -166,7 +163,26 @@ void AGunsmithRangeGameMode::EndPractise()
 
 void AGunsmithRangeGameMode::StartGame()
 {
-	RestartPlayer(AIController);
+	if (bStarted)
+	{
+		return;
+	}
+	
+	bStarted = true;
+	
+	ActivateTargets(NumActiveTargets);
+}
+
+float AGunsmithRangeGameMode::GetTargetDistanceFromRange(
+	const TWeakObjectPtr<AGunsmithRangeTargetActor>& TargetActor) const
+{
+	if (TargetActor.IsValid())
+	{
+		const FVector ActorLocation = TargetActor->GetActorLocation();
+		return FMath::Abs(RangeYLocation - ActorLocation.Y);
+	}
+
+	return 0.0f;
 }
 
 void AGunsmithRangeGameMode::OnWeaponChanged(UGSShootingComponent* ShootingComponent, UGSWeaponDataAsset* NewWeaponData)
@@ -186,8 +202,24 @@ void AGunsmithRangeGameMode::OnWeaponChanged(UGSShootingComponent* ShootingCompo
 		MaxWeaponRange = MaxRange;
 	}
 
-	if (MaxWeaponRange - SpawnWallThickness < LastSpawnDistance)
+	for (const TWeakObjectPtr<AGunsmithRangeTargetActor>& Target : TargetActors)
 	{
-		RestartAIPawns(0.0f);
+		if (Target.IsValid())
+		{
+			const float YDistance = GetTargetDistanceFromRange(Target);
+
+			if (YDistance > MaxWeaponRange)
+			{
+				Target->SetTargetActive(false);
+			}
+		}
+	}
+}
+
+void AGunsmithRangeGameMode::OnTargetActiveStateChanged(bool bActive, AGunsmithRangeTargetActor* TargetActor)
+{
+	if (!bActive && !bIgnoreInactiveCallback)
+	{
+		ActivateTargets(1, 0.0f, TargetActor);
 	}
 }

@@ -4,12 +4,26 @@
 
 #include "GSGameplayLibrary.h"
 #include "GSLog.h"
+#include "NetworkPredictionWorldManager.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Health/GSHealthComponent.h"
+#include "Netcode/GSNetworkLibrary.h"
+
+bool AGunsmithGameMode::IsHandlingReplays()
+{
+	// If we're running in PIE, don't record demos
+	if (GetWorld() != nullptr && GetWorld()->IsPlayInEditor())
+	{
+		return false;
+	}
+
+	// Overriding base functionality so that we can create replays in Listen Server mode
+	return bHandleDedicatedServerReplays && (GetNetMode() == NM_DedicatedServer || GetNetMode() == NM_ListenServer);
+}
 
 APawn* AGunsmithGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer,
-	const FTransform& SpawnTransform)
+                                                                     const FTransform& SpawnTransform)
 {
 	APawn* Pawn =  Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 	

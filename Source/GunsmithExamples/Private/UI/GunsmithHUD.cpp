@@ -73,6 +73,21 @@ void AGunsmithHUD::BeginDestroy()
 	}
 }
 
+void AGunsmithHUD::ShowHUD()
+{
+	Super::ShowHUD();
+
+	if (HUDWidget)
+	{
+		HUDWidget->SetVisibility(bShowHUD ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+}
+
+void AGunsmithHUD::SetSpectatedPawn(APawn* NewPawn)
+{
+	OnPossessedPawnChanged(nullptr, NewPawn);
+}
+
 UWidget* AGunsmithHUD::SetPaused(bool bPaused) const
 {
 	if (bPaused)

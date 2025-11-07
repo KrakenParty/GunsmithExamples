@@ -12,5 +12,11 @@ public class GunsmithExamplesClientTarget : TargetRules
 		ExtraModuleNames.Add("GunsmithExamples");
 		
 		ProjectDefinitions.Add("UE_PROJECT_STEAMSHIPPINGID=3822750");
+		RegisterModulesCreatedByRider();
+	}
+
+	private void RegisterModulesCreatedByRider()
+	{
+		ExtraModuleNames.AddRange(new string[] { "GunsmithExamplesEditor" });
 	}
 }

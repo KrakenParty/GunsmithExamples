@@ -23,16 +23,29 @@ void AGunsmithMultiplayerGameState::BeginPlay()
 		DynamicPreloadData.PreloadDataTable->RowStruct = FGSPreloadDataRow::StaticStruct();
 		DynamicPreloadData.ExpectedPlayers = PreloadData.ExpectedPlayers;
 
-		for (UGSWeaponDataAsset* WeaponData : WeaponPool)
-		{
-			FGSPreloadDataRow Row;
-			Row.WeaponData = WeaponData;
-			
-			DynamicPreloadData.PreloadDataTable->AddRow(FName(WeaponData->GetName()), Row);
-		}
-
 		FGSPreloadDataRow AttachmentsRow;
-		for (const TSubclassOf<UGSWeaponAttachment>& Attachment : AttachmentPool)
+		for (FGSMultiplayerWeaponPoolLoadouts Loadout : WeaponPool)
+		{
+			if (!Loadout.WeaponData)
+			{
+				continue;
+			}
+			
+			FGSPreloadDataRow Row;
+			Row.WeaponData = Loadout.WeaponData;
+			
+			DynamicPreloadData.PreloadDataTable->AddRow(FName(Loadout.WeaponData->GetName()), Row);
+
+			for (const TSubclassOf<UGSWeaponAttachment>& Attachment : Loadout.Attachments)
+			{
+				FGSPreloadAttachmentData AttachmentData;
+				AttachmentData.Attachment = Attachment;
+			
+				AttachmentsRow.Attachments.Emplace(AttachmentData);
+			}
+		}
+		
+		for (const TSubclassOf<UGSWeaponAttachment>& Attachment : GlobalAttachmentPool)
 		{
 			FGSPreloadAttachmentData AttachmentData;
 			AttachmentData.Attachment = Attachment;

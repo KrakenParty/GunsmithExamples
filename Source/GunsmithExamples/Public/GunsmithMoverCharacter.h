@@ -6,6 +6,7 @@
 #include "Character/GSCharacter.h"
 #include "MoverSimulationTypes.h"
 #include "Character/GSAnimatedCharacter.h"
+#include "Game/Effects/LyraContextEffectsInterface.h"
 #include "Netcode/GSRollbackInterface.h"
 #include "Weapon/Target/GSDamageTargetInterface.h"
 #include "GunsmithMoverCharacter.generated.h"
@@ -42,7 +43,11 @@ struct GUNSMITHEXAMPLES_API FGSCharacterInputConfig
  *	This is intentionally not using best practises in favour of being more readable
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSAnimatedCharacter, public IMoverInputProducerInterface, public IGSDamageTargetInterface, public IGSRollbackInterface
+class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSAnimatedCharacter,
+														public IMoverInputProducerInterface,
+														public IGSDamageTargetInterface,
+														public IGSRollbackInterface,
+														public ILyraContextEffectsInterface
 {
 	GENERATED_BODY()
 
@@ -279,6 +284,14 @@ protected:
 
 	// Play a hit react based on which direction the character was hit from
 	void PlayHitReact(int32 Seed, const FVector& HitNormal) const;
+
+	// A sound to play when entering the ADS state
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TObjectPtr<USoundBase> StartADSSound = nullptr;
+
+	// A sound to play when exiting the ADS state
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TObjectPtr<USoundBase> EndADSSound = nullptr;
 
 	/*** Debug ***/
 
