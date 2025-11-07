@@ -18,7 +18,10 @@
 		{
 			"Name": "GunsmithExamplesEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"TargetAllowList": [
+				"Editor"
+			]
 		}
 	],
 	"Plugins": [
