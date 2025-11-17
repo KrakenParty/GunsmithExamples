@@ -15,6 +15,8 @@ bool FGunsmithOverheatAuxState::NetSerialize(FArchive& Ar, UPackageMap* Map, boo
 	const bool bIsSaving = Ar.IsSaving();
 	SerializeOptionalValue(bIsSaving, Ar, TimeUntilCoolDown, 0.0f);
 
+	bOutSuccess = true;
+
 	return bOutSuccess;
 }
 

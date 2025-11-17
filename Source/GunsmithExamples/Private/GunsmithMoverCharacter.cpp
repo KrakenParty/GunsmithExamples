@@ -97,7 +97,23 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 #if !UE_BUILD_SHIPPING
 			if (bEnable)
 			{
-				AGunsmithMoverCharacter::EnabledDebugMovers.AddUnique({ ControllerID, MoveType });
+				bool bFound = false;
+				for (int32 i = 0; i < AGunsmithMoverCharacter::EnabledDebugMovers.Num(); i++)
+				{
+					TTuple<uint32, int32>& ExistingMover = AGunsmithMoverCharacter::EnabledDebugMovers[i];
+
+					if (ExistingMover.Key == ControllerID)
+					{
+						ExistingMover.Value = MoveType;
+						bFound = true;
+						break;
+					}
+				}
+
+				if (!bFound)
+				{
+					AGunsmithMoverCharacter::EnabledDebugMovers.Add({ ControllerID, MoveType });
+				}
 			}
 			else
 			{
@@ -114,7 +130,7 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 			
 			if (AGunsmithMoverCharacter* MoverCharacter = Cast<AGunsmithMoverCharacter>(PlayerController->GetPawn()))
 			{
-				MoverCharacter->EnableDebugMovement(bEnable);
+				MoverCharacter->EnableDebugMovement(MoveType);
 			}
 #endif
 		}
@@ -470,7 +486,7 @@ void AGunsmithMoverCharacter::OnRep_Controller()
 		{
 			if (EnabledMover.Key == ControllerID)
 			{
-				EnableDebugMovement(true);
+				EnableDebugMovement(EnabledMover.Value);
 			}
 		}
 	}
