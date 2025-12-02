@@ -176,6 +176,12 @@ void AGunsmithMoverCharacter::BeginPlay()
 	HealthComponent->OnDeath.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDeath);
 	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
+	
+	if (UGSAnimationDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSAnimationDebugHistory, GSAnimationDebugHistoryFrame>())
+	{
+		DebugHistory->bRecording = false;
+		DebugHistory->SkeletalMeshComponent = GetMesh();
+	}
 
 	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
 	if (RollbackProxy)
