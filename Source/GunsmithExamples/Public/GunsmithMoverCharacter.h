@@ -330,7 +330,7 @@ private:
 #endif
 
 	UFUNCTION()
-	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState);
+	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState);
 	UFUNCTION()
 	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const FGSProjectileFrameState& CurrentFrameData);
 

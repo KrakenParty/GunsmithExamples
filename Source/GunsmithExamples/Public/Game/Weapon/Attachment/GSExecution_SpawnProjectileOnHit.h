@@ -60,10 +60,10 @@ protected:
 	UFUNCTION()
 	virtual void OnProjectileSpawned(UGSProjectileState* Projectile);
 	UFUNCTION()
-	virtual void OnProjectileHitTarget(int32 Frame, const FHitResult& Hit, UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState);
+	virtual void OnProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState);
 
 	// Return true if a projectile can be spawned on the target surface
-	virtual bool CanSpawnOnTargetHit(const FHitResult& Hit, UGSProjectileState* ProjectileState) const;
+	virtual bool CanSpawnOnTargetHit(const FHitResult& Hit, const UGSProjectileState* ProjectileState) const;
 	
 	// Returns true if the projectile matches the filter so we do not apply this effect to all projectiles
 	virtual bool DoesProjectileMatchFilter(UGSProjectileState* Projectile) const;

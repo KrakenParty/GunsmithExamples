@@ -177,10 +177,15 @@ void AGunsmithMoverCharacter::BeginPlay()
 	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
 	
+	// Setup optional debug history for the gameplay debugger
 	if (UGSAnimationDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSAnimationDebugHistory, GSAnimationDebugHistoryFrame>())
 	{
-		DebugHistory->bRecording = false;
 		DebugHistory->SkeletalMeshComponent = GetMesh();
+	}
+	
+	if (UGSShootingComponentDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSShootingComponentDebugHistory, GSShootingComponentDebugHistoryFrame>())
+	{
+		DebugHistory->ShootingComponent = ShootingComponent;
 	}
 
 	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
@@ -1089,7 +1094,7 @@ void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 #endif
 
 void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
+	const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
 {
 #if !UE_BUILD_SHIPPING
 	if (APawn* HitPawn = Cast<APawn>(Hit.GetActor()))

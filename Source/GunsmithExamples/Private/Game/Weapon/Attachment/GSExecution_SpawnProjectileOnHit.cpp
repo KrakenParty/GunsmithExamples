@@ -121,7 +121,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileSpawned(UGSProjectileState* 
 }
 
 void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	 UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
+	 const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
 {
 	if (bExecutionEnded)
 	{
@@ -193,7 +193,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 	}
 }
 
-bool UGSExecution_SpawnProjectileOnHit::CanSpawnOnTargetHit(const FHitResult& Hit, UGSProjectileState* ProjectileState) const
+bool UGSExecution_SpawnProjectileOnHit::CanSpawnOnTargetHit(const FHitResult& Hit, const UGSProjectileState* ProjectileState) const
 {
 	FHitResult HitCopy = Hit;
 
