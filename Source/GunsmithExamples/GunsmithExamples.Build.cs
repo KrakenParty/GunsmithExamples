@@ -43,5 +43,13 @@ public class GunsmithExamples : ModuleRules
 				"DeveloperSettings"
 			}
 		);
+
+		// Add the itch manifest to the win64 output - linux should work without this
+		if (!Target.bBuildEditor && Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			RuntimeDependencies.Add("$(TargetOutputDir)/.itch.toml",
+				"$(ProjectDir)/ThirdParty/Win64/.itch.toml",
+				StagedFileType.SystemNonUFS);
+		}
 	}
 }

@@ -182,6 +182,11 @@ void AGunsmithMoverCharacter::BeginPlay()
 	{
 		DebugHistory->SkeletalMeshComponent = GetMesh();
 	}
+	
+	if (UGSShootingComponentDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSShootingComponentDebugHistory, GSShootingComponentDebugHistoryFrame>())
+	{
+		DebugHistory->ShootingComponent = ShootingComponent;
+	}
 
 	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
 	if (RollbackProxy)
