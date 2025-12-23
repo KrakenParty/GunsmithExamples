@@ -16,25 +16,31 @@ void UGunsmithGASHealthComponent::BeginPlay()
 
 	if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(GetOwner()))
 	{
-		ShootingComponent->CallOrRegisterAbilityComponentSetupEvent(FGSAbilitySystemSetupDelegate::FDelegate::CreateWeakLambda(this, [this](UAbilitySystemComponent* AbilitySystemComponent)
+		TWeakObjectPtr<UGunsmithGASHealthComponent> WeakThis(this);
+		ShootingComponent->CallOrRegisterAbilityComponentSetupEvent(FGSAbilitySystemSetupDelegate::FDelegate::CreateWeakLambda(this, [WeakThis](UAbilitySystemComponent* AbilitySystemComponent)
 		{
-			if (HealthAttribute.IsValid())
+			if (!WeakThis.Get())
 			{
-				AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(HealthAttribute).AddUObject(this, &UGunsmithGASHealthComponent::OnHealthChanged);
+				return;
+			}
+			
+			if (WeakThis->HealthAttribute.IsValid())
+			{
+				AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(WeakThis->HealthAttribute).AddUObject(WeakThis.Get(), &UGunsmithGASHealthComponent::OnHealthChanged);
 
-				if (HealthVM)
+				if (WeakThis->HealthVM)
 				{
-					HealthVM->SetHealth(AbilitySystemComponent->GetNumericAttribute(HealthAttribute));
+					WeakThis->HealthVM->SetHealth(AbilitySystemComponent->GetNumericAttribute(WeakThis->HealthAttribute));
 				}
 			}
 
-			if (MaxHealthAttribute.IsValid())
+			if (WeakThis->MaxHealthAttribute.IsValid())
 			{
-				AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(MaxHealthAttribute).AddUObject(this, &UGunsmithGASHealthComponent::OnMaxHealthChanged);
+				AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(WeakThis->MaxHealthAttribute).AddUObject(WeakThis.Get(), &UGunsmithGASHealthComponent::OnMaxHealthChanged);
 
-				if (HealthVM)
+				if (WeakThis->HealthVM)
 				{
-					HealthVM->SetMaxHealth(AbilitySystemComponent->GetNumericAttribute(MaxHealthAttribute));
+					WeakThis->HealthVM->SetMaxHealth(AbilitySystemComponent->GetNumericAttribute(WeakThis->MaxHealthAttribute));
 				}
 			}
 		}));

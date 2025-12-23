@@ -53,9 +53,13 @@ void AGunsmithRangeGameMode::ActivateTargets(int32 NumTargets, float TimeBeforeA
 {
 	if (TimeBeforeActivation > 0.0f && !ActivateTimer.IsValid())
 	{
-		GetWorld()->GetTimerManager().SetTimer(ActivateTimer, FTimerDelegate::CreateWeakLambda(this, [this, NumTargets, IgnoredTarget]()
+		TWeakObjectPtr<AGunsmithRangeGameMode> WeakThis(this);
+		GetWorld()->GetTimerManager().SetTimer(ActivateTimer, FTimerDelegate::CreateWeakLambda(this, [WeakThis, NumTargets, IgnoredTarget]()
 		{
-			ActivateTargets(NumTargets, 0.0f, IgnoredTarget);	
+			if (WeakThis.Get())
+			{
+				WeakThis->ActivateTargets(NumTargets, 0.0f, IgnoredTarget);
+			}
 		}), TimeBeforeActivation, false);
 		return;
 	}

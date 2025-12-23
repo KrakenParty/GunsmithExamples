@@ -177,7 +177,6 @@ void AGunsmithMoverCharacter::BeginPlay()
 	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
 	
-	// Setup optional debug history for the gameplay debugger
 	if (UGSAnimationDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSAnimationDebugHistory, GSAnimationDebugHistoryFrame>())
 	{
 		DebugHistory->SkeletalMeshComponent = GetMesh();
@@ -1017,10 +1016,14 @@ void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponen
 
 	if (DeathTimeBeforeDestroy > 0.0f)
 	{
+		TWeakObjectPtr<AGunsmithMoverCharacter> WeakThis(this);
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateWeakLambda(this, [this]()
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateWeakLambda(this, [WeakThis]()
 		{
-			Destroy();
+			if (WeakThis.Get())
+			{
+				WeakThis->Destroy();
+			}
 		}), DeathTimeBeforeDestroy, false);
 	}
 	else

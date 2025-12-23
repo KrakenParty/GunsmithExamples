@@ -17,9 +17,13 @@ void AGunsmithGameState::BeginPlay()
 	{		
 		if (UGSWeaponsSubsystem* WeaponsSubsystem = GetGameInstance()->GetSubsystem<UGSWeaponsSubsystem>())
 		{
-			WeaponsSubsystem->PreloadObjects(PreloadData, FGSWeaponsSystemPreloadCompleteDelegate::FDelegate::CreateWeakLambda(this, [this](const UGSWeaponsSubsystem* Subsystem)
+			TWeakObjectPtr<AGunsmithGameState> WeakThis(this);
+			WeaponsSubsystem->PreloadObjects(PreloadData, FGSWeaponsSystemPreloadCompleteDelegate::FDelegate::CreateWeakLambda(this, [WeakThis](const UGSWeaponsSubsystem* Subsystem)
 			{
-				bIsInitialized = true;
+				if (WeakThis.Get())
+				{
+					WeakThis->bIsInitialized = true;
+				}
 			}));
 		}
 	}
