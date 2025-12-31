@@ -26,7 +26,9 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Game/GunsmithExampleWeaponDataAsset.h"
 #include "Character/GSCharacterAnimationData.h"
+#include "Engine/GameInstance.h"
 #include "Game/GunsmithGameState.h"
+#include "Game/GunsmithPlayerController.h"
 #include "Game/GunsmithShootingComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
@@ -40,6 +42,7 @@
 #include "UI/GunsmithHUD.h"
 #include "UI/GunsmithHUDWidget.h"
 #include "VisualLogger/VisualLogger.h"
+#include "Weapon/GSWeaponsSubsystem.h"
 #include "Weapon/Emitter/GSWeaponEmitter.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 
@@ -137,6 +140,47 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugMove
 	})
 );
 
+static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugEquip
+(
+	TEXT("Gunsmith.Debug.EquipCharacter"),
+	TEXT("Equips the local character with equip data that matches the tag. The weapon must be preloaded via the GSWeaponsSubsystem"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& InParams, const UWorld* InWorld)
+	{
+		if(InParams.Num() == 0 || !InWorld)
+		{
+			return;
+		}
+		
+		UGSWeaponsSubsystem* WeaponsSubsystem = InWorld->GetGameInstance()->GetSubsystem<UGSWeaponsSubsystem>();
+		
+		if (!WeaponsSubsystem)
+		{
+			return;
+		}
+		
+		FGameplayTag EquipTag = FGameplayTag::RequestGameplayTag(FName(InParams[0]));
+		
+		if (!EquipTag.IsValid())
+		{
+			UE_LOG(LogGunsmith, Warning, TEXT("Unable to find gameplay tag %s"), *InParams[0])
+			return;
+		}
+		
+		UGSWeaponDataAsset* WeaponData = WeaponsSubsystem->GetLoadedWeaponData(EquipTag);
+		
+		if (!WeaponData)
+		{
+			UE_LOG(LogGunsmith, Warning, TEXT("Unable to find loaded weapon with tag %s"), *InParams[0])
+			return;
+		}
+		
+		if (AGunsmithPlayerController* LocalCharacter = Cast<AGunsmithPlayerController>(UGameplayStatics::GetPlayerController(InWorld, 0)))
+		{
+			LocalCharacter->Server_EquipWeapon(WeaponData);
+		}
+	})
+);
+
 namespace GunsmithMoverCharacterNames
 {
 	static const FName CharacterMotionComponent = TEXT("MoverComponent");
@@ -177,9 +221,15 @@ void AGunsmithMoverCharacter::BeginPlay()
 	
 	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
 	
+	// Setup optional debug history for the gameplay debugger
 	if (UGSAnimationDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSAnimationDebugHistory, GSAnimationDebugHistoryFrame>())
 	{
 		DebugHistory->SkeletalMeshComponent = GetMesh();
+	}
+	
+	if (UGSShootingComponentDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSShootingComponentDebugHistory, GSShootingComponentDebugHistoryFrame>())
+	{
+		DebugHistory->ShootingComponent = ShootingComponent;
 	}
 
 	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();

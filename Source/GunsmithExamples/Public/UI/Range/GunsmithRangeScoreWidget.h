@@ -41,4 +41,5 @@ protected:
 	void OnRecordChanged(UGSWeaponDataAsset* WeaponData, float Score) const;
 	void OnActiveStateChanged(bool bActive) const;
 	void OnTimeRemainingChanged(int32 TimeRemaining, bool bIsWarmUpActive) const;
+	void SetupWorld(AGameStateBase* GameState);
 };

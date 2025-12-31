@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GunsmithPlayerController.generated.h"
 
+class UGSWeaponDataAsset;
 class UInputAction;
 class UInputMappingContext;
 class UWidget;
@@ -66,12 +67,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Gunsmith")
 	void RequestServerRestartPawn();
 
+	// Returns true if the last input was from a gamepad
+	bool WasLastUsingGamepad() const { return bWasLastUsingGamepad; }
+	
 	// A cheat to kill the controllers current pawn
 	UFUNCTION(Server, Reliable, Category="Gunsmith")
 	void Server_KillPawn();
-
-	// Returns true if the last input was from a gamepad
-	bool WasLastUsingGamepad() const { return bWasLastUsingGamepad; }
+	
+	UFUNCTION(Server, Reliable, Category="Gunsmith")
+	void Server_EquipWeapon(UGSWeaponDataAsset* WeaponData);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")

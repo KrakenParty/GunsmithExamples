@@ -32,6 +32,11 @@ void AGunsmithRangePlayerController::SetupInputComponent()
 
 void AGunsmithRangePlayerController::OnTogglePractisePressed(const FInputActionValue& Value)
 {
+	Server_TogglePractise();
+}
+
+void AGunsmithRangePlayerController::Server_TogglePractise_Implementation()
+{
 	AGunsmithRangeGameMode* GameMode = GetWorld()->GetAuthGameMode<AGunsmithRangeGameMode>();
 	AGunsmithGameState_Range* GameState = GetWorld()->GetGameState<AGunsmithGameState_Range>();
 	if (GameMode && GameState)
@@ -44,5 +49,5 @@ void AGunsmithRangePlayerController::OnTogglePractisePressed(const FInputActionV
 		{
 			GameMode->StartPractise();
 		}
-	}
+	}	
 }

@@ -19,6 +19,8 @@
 #include "Net/Core/PushModel/PushModel.h"
 #include "Netcode/GSNetworkLibrary.h"
 #include "UI/GunsmithHUD.h"
+#include "Weapon/GSEquipData.h"
+#include "Weapon/GSShootingComponent.h"
 
 static FAutoConsoleCommandWithWorld FCmdGunsmithKillPlayer
 (
@@ -191,6 +193,17 @@ void AGunsmithPlayerController::Server_KillPawn_Implementation()
 		HealthComponent->ApplyDamage(DamageRequest);
 	}
 #endif
+}
+
+void AGunsmithPlayerController::Server_EquipWeapon_Implementation(UGSWeaponDataAsset* WeaponData)
+{
+	if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(GetPawn()))
+	{
+		FGSEquipData NewData;
+		NewData.WeaponData = WeaponData;
+				
+		ShootingComponent->EquipWeapon(NewData, ShootingComponent->GetActiveWeaponSlot());
+	}
 }
 
 void AGunsmithPlayerController::OnPausePressed(const FInputActionValue& Value)

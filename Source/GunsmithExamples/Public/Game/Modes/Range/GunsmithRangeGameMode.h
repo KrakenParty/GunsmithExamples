@@ -74,6 +74,7 @@ protected:
 	float GetTargetDistanceFromRange(const TWeakObjectPtr<AGunsmithRangeTargetActor>& TargetActor) const;
 
 	void OnWeaponChanged(UGSShootingComponent* ShootingComponent, UGSWeaponDataAsset* NewWeaponData);
+	void OnPractiseActiveStateChanged(bool bActive);
 
 	void OnTargetActiveStateChanged(bool bActive, AGunsmithRangeTargetActor* TargetActor);
 };

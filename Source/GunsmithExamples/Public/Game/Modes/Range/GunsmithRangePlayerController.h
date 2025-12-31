@@ -30,4 +30,7 @@ protected:
 	TObjectPtr<UInputAction> TogglePractiseInputAction = nullptr;
 
 	void OnTogglePractisePressed(const FInputActionValue& Value);
+	
+	UFUNCTION(Server, Reliable)
+	void Server_TogglePractise();
 };

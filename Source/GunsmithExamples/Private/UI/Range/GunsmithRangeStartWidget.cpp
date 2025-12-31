@@ -15,11 +15,14 @@ void UGunsmithRangeStartWidget::NativeOnInitialized()
 		Controller->OnDeviceChanged.AddDynamic(this, &UGunsmithRangeStartWidget::OnDeviceChanged);
 	}
 	
-	if (AGunsmithGameState_Range* GameState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
+	UWorld* World = GetWorld();
+	if (AGunsmithGameState_Range* GameState = World->GetGameState<AGunsmithGameState_Range>())
 	{
-		GameState->OnPractiseActiveChanged.AddUObject(this, &UGunsmithRangeStartWidget::OnPractiseActivityChanged);
-
-		OnPractiseActivityChanged(GameState->IsPractiseActive());
+		SetupWorld(GameState);
+	}
+	else
+	{
+		World->GameStateSetEvent.AddUObject(this, &UGunsmithRangeStartWidget::SetupWorld);	
 	}
 }
 
@@ -39,5 +42,15 @@ void UGunsmithRangeStartWidget::OnDeviceChanged(bool bIsUsingGamepad)
 	if (AGunsmithGameState_Range* GameState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
 	{
 		OnPractiseActivityChanged(GameState->IsPractiseActive());
+	}
+}
+
+void UGunsmithRangeStartWidget::SetupWorld(AGameStateBase* GameState)
+{
+	if (AGunsmithGameState_Range* RangeGameState = Cast<AGunsmithGameState_Range>(GameState))
+	{
+		RangeGameState->OnPractiseActiveChanged.AddUObject(this, &UGunsmithRangeStartWidget::OnPractiseActivityChanged);
+
+		OnPractiseActivityChanged(RangeGameState->IsPractiseActive());
 	}
 }

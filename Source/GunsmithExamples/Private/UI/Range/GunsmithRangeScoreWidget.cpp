@@ -11,16 +11,14 @@ void UGunsmithRangeScoreWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	if (AGunsmithGameState_Range* GameState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
+	UWorld* World = GetWorld();
+	if (AGunsmithGameState_Range* GameState = World->GetGameState<AGunsmithGameState_Range>())
 	{
-		GameState->OnScoreChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnScoreChanged);
-		GameState->OnRecordChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnRecordChanged);
-		GameState->OnWeaponChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnWeaponChanged);
-		GameState->OnPractiseActiveChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnActiveStateChanged);
-		GameState->OnPractiseTimeRemainingChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnTimeRemainingChanged);
-
-		OnWeaponChanged(nullptr, GameState->GetTrackedWeapon());
-		OnActiveStateChanged(GameState->IsPractiseActive());
+		SetupWorld(GameState);
+	}
+	else
+	{
+		World->GameStateSetEvent.AddUObject(this, &UGunsmithRangeScoreWidget::SetupWorld);	
 	}
 }
 
@@ -73,5 +71,20 @@ void UGunsmithRangeScoreWidget::OnTimeRemainingChanged(int32 TimeRemaining, bool
 	else
 	{
 		TimeRemainingText->SetText(FText::FromString(FString::FromInt(TimeRemaining)));
+	}
+}
+
+void UGunsmithRangeScoreWidget::SetupWorld(AGameStateBase* GameState)
+{
+	if (AGunsmithGameState_Range* RangeGameState = Cast<AGunsmithGameState_Range>(GameState))
+	{
+		RangeGameState->OnScoreChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnScoreChanged);
+		RangeGameState->OnRecordChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnRecordChanged);
+		RangeGameState->OnWeaponChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnWeaponChanged);
+		RangeGameState->OnPractiseActiveChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnActiveStateChanged);
+		RangeGameState->OnPractiseTimeRemainingChanged.AddUObject(this, &UGunsmithRangeScoreWidget::OnTimeRemainingChanged);
+
+		OnWeaponChanged(nullptr, RangeGameState->GetTrackedWeapon());
+		OnActiveStateChanged(RangeGameState->IsPractiseActive());
 	}
 }

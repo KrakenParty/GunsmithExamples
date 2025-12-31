@@ -30,6 +30,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// AGameState End
 	
 	FGunsmithRangeScoreChangedDelegate OnScoreChanged;
@@ -60,6 +61,7 @@ protected:
 
 	TMap<TObjectKey<UGSWeaponDataAsset>, float> Records;
 
+	UPROPERTY(ReplicatedUsing=OnRep_bIsPractiseActive)
 	bool bIsPractiseActive = false;
 	float WarmUpTimeRemaining = 0.0f;
 	float PractiseTimeRemaining = 0.0f;
@@ -72,6 +74,9 @@ protected:
 
 	UFUNCTION()
 	void OnWeaponEquipped(const FGSEquipData& Weapon);
+	
+	UFUNCTION()
+	void OnRep_bIsPractiseActive();
 
 	// Set the current weapons score value
 	void SetCurrentScore(float NewScore);

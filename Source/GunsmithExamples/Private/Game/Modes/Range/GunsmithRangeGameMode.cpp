@@ -28,6 +28,7 @@ void AGunsmithRangeGameMode::BeginPlay()
 	if (AGunsmithGameState_Range* RangeState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
 	{
 		RangeState->OnWeaponChanged.AddUObject(this, &AGunsmithRangeGameMode::OnWeaponChanged);
+		RangeState->OnPractiseActiveChanged.AddUObject(this, &AGunsmithRangeGameMode::OnPractiseActiveStateChanged);
 
 		UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(RangeState->GetTrackedPawn());
 		OnWeaponChanged(ShootingComponent, RangeState->GetTrackedWeapon());
@@ -147,21 +148,6 @@ void AGunsmithRangeGameMode::EndPractise()
 	if (AGunsmithGameState_Range* RangeState = GetWorld()->GetGameState<AGunsmithGameState_Range>())
 	{
 		RangeState->EndPractise();
-
-		// Remove any applied attachments
-		for (APlayerState* Player : RangeState->PlayerArray)
-		{
-			APawn* Pawn = Player->GetPawn();
-
-			if (IsValid(Pawn) && AppliedAttachments.Contains(Pawn))
-			{
-				if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(Pawn))
-				{
-					ShootingComponent->RemoveAttachment(AppliedAttachments[Pawn]);
-					AppliedAttachments.Remove(Pawn);
-				}
-			}
-		}
 	}
 }
 
@@ -215,6 +201,30 @@ void AGunsmithRangeGameMode::OnWeaponChanged(UGSShootingComponent* ShootingCompo
 			if (YDistance > MaxWeaponRange)
 			{
 				Target->SetTargetActive(false);
+			}
+		}
+	}
+}
+
+void AGunsmithRangeGameMode::OnPractiseActiveStateChanged(bool bActive)
+{
+	if (!bActive)
+	{
+		// Remove any applied attachments
+		if (GameState)
+		{
+			for (APlayerState* Player : GameState->PlayerArray)
+			{
+				APawn* Pawn = Player->GetPawn();
+
+				if (IsValid(Pawn) && AppliedAttachments.Contains(Pawn))
+				{
+					if (UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(Pawn))
+					{
+						ShootingComponent->RemoveAttachment(AppliedAttachments[Pawn]);
+						AppliedAttachments.Remove(Pawn);
+					}
+				}
 			}
 		}
 	}

@@ -3,8 +3,10 @@
 #include "Game/Modes/Range/GunsmithGameState_Range.h"
 
 #include "GSGameplayLibrary.h"
+#include "Engine/World.h"
 #include "GameFramework/PlayerState.h"
 #include "Health/GSHealthComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Weapon/GSShootingComponent.h"
 
 AGunsmithGameState_Range::AGunsmithGameState_Range()
@@ -67,6 +69,13 @@ void AGunsmithGameState_Range::RemovePlayerState(APlayerState* PlayerState)
 	Super::RemovePlayerState(PlayerState);
 
 	PlayerState->OnPawnSet.RemoveDynamic(this, &AGunsmithGameState_Range::OnPawnSet);
+}
+
+void AGunsmithGameState_Range::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AGunsmithGameState_Range, bIsPractiseActive);
 }
 
 void AGunsmithGameState_Range::StartPractise(float WarmUpTime)
@@ -166,6 +175,11 @@ void AGunsmithGameState_Range::OnWeaponEquipped(const FGSEquipData& Weapon)
 
 	UGSShootingComponent* ShootingComponent = UGSGameplayLibrary::GetShootingComponentFromActor(CurrentTrackedPawn.Get());
 	OnWeaponChanged.Broadcast(ShootingComponent, CurrentEquippedWeapon.Get());
+}
+
+void AGunsmithGameState_Range::OnRep_bIsPractiseActive()
+{
+	OnPractiseActiveChanged.Broadcast(bIsPractiseActive);
 }
 
 void AGunsmithGameState_Range::SetCurrentScore(float NewScore)

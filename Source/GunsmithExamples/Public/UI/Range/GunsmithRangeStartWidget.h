@@ -39,4 +39,6 @@ protected:
 
 	UFUNCTION()
 	void OnDeviceChanged(bool bIsUsingGamepad);
+	
+	void SetupWorld(AGameStateBase* GameState);
 };

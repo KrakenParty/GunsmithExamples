@@ -16,6 +16,11 @@ public class GunsmithExamplesTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("GunsmithExamples");
 		
+		// Enabled to improve demo QOL
+		bUseConsoleInShipping = true;
+		bUseLoggingInShipping = true;
+		bUseExecCommandsInShipping = true;
+		
 		ProjectDefinitions.Add("UE_PROJECT_STEAMSHIPPINGID=3822750");
 	}
 }
