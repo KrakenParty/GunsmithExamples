@@ -53,6 +53,8 @@ void AGunsmithPlayerController::BeginPlay()
 
 void AGunsmithPlayerController::OnRep_Pawn()
 {
+	ClientRetryClientRestart(GetPawn());
+	
 	Super::OnRep_Pawn();
 
 	UpdateSpectatorState();
