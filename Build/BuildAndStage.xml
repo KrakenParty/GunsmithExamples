@@ -17,6 +17,7 @@
 		<Node Name="Compile" Produces="#Compiled_Binaries">
 			<ForEach Name="Platform" Values="$(Platforms)">
 				<Compile Target="$(ProjectName)" Platform="$(Platform)" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+				<Compile Target="$(ProjectName)Server" Platform="$(Platform)" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 			</ForEach>
 		</Node>
 
@@ -30,6 +31,25 @@
 		<Node Name="Compile Editor" Requires="Compile Tools" Produces="#EditorBinaries">
             <Compile Target="$(ProjectName)Editor" Platform="Win64" Configuration="Development" Tag="#EditorBinaries" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
         </Node>
+
+		<!-- Package the server -->
+		<Node Name="CookServer" RunEarly="true">
+			<ForEach Name="Platform" Values="$(CookPlatforms)">
+				<Cook Project="$(TargetProject)" Platform="$(Platform)" Arguments="-manifests"/>
+			</ForEach>
+		</Node>
+
+		<Node Name="StageServer" >
+			<ForEach Name="Platform" Values="$(Platforms)">
+				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -server -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+			</ForEach>
+		</Node>
+
+		<Node Name="PackageServer" Requires="StageServer">
+			<ForEach Name="Platform" Values="$(Platforms)">
+				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -skipbuild -skipcook -skipstage -skippak -package -archive -archivedirectory=&quot;$(OutputRoot)&quot;" />
+			</ForEach>
+		</Node>
 
 		<!-- Package the client -->
 		<Node Name="CookClient" RunEarly="true">

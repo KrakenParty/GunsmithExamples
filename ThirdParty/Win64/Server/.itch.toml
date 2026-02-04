@@ -1,0 +1,9 @@
+[[actions]]
+name = "run"
+path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer-Win64-Shipping.exe"
+args = ["-server -log"]
+
+[[actions]]
+name = "run with lag"
+path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer-Win64-Shipping.exe"
+args = ["-server -log -ini:Engine:[PacketSimulationSettings]:PktLag=200 -ini:Engine:[PacketSimulationSettings]:PktLoss=1"]
