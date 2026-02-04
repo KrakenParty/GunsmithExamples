@@ -72,5 +72,5 @@
 
 	</Agent>
 
-	<Aggregate Name="Build All Platforms" Requires="Compile;Compile Tools;Compile Editor;CookClient;StageClient;PackageClient"/>
+	<Aggregate Name="Build All Platforms" Requires="Compile;Compile Tools;Compile Editor;CookServer;StageServer;PackageServer;CookClient;StageClient;PackageClient"/>
 </BuildGraph>
