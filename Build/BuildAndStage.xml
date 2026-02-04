@@ -34,22 +34,22 @@
 
 		<!-- Package the server -->
 		<Node Name="CookServer" RunEarly="true">
-			<ForEach Name="Platform" Values="$(CookPlatforms)">
-				<Cook Project="$(TargetProject)" Platform="$(Platform)" Arguments="-manifests"/>
-			</ForEach>
-		</Node>
+            <Cook Project="$(TargetProject)" Platform="WindowsServer" Arguments="-manifests"/>
+        </Node>
+
+		<Property Name="StageAndPackageArguments" Value="-CrashReporter" />
+
+		<Property Name="BCRArgsServer" Value="$(BCRArgs) -target=&quot;$(ProjectName)Server&quot; -platform=Win64 -server" />
 
 		<Node Name="StageServer" >
-			<ForEach Name="Platform" Values="$(Platforms)">
-				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -server -skipbuild -skipcook -stage -pak -iostore -prereqs" />
-			</ForEach>
-		</Node>
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsServer) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+        </Node>
+
+		<Property Name="PackageOnlyArguments" Value="-archive -archivedirectory=&quot;$(OutputRoot)/$(StagedPlatformFolder)&quot;"/>
 
 		<Node Name="PackageServer" Requires="StageServer">
-			<ForEach Name="Platform" Values="$(Platforms)">
-				<Command Name="BuildCookRun" Arguments="$(BCRArgs) -target=&quot;$(ProjectName)&quot; -platform=$(Platform) -configuration=$(BuildConfig) -skipbuild -skipcook -skipstage -skippak -package -archive -archivedirectory=&quot;$(OutputRoot)&quot;" />
-			</ForEach>
-		</Node>
+            <Command Name="BuildCookRun" Arguments="$(BCRArgs) -platform=Win64 -server -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
+        </Node>
 
 		<!-- Package the client -->
 		<Node Name="CookClient" RunEarly="true">
