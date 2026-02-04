@@ -18,9 +18,9 @@
 			<ForEach Name="Platform" Values="$(Platforms)">
 				<Compile Target="$(ProjectName)" Platform="$(Platform)" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 			</ForEach>
-		</Node>
 
-		<Compile Target="$(ProjectName)Server" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			<Compile Target="$(ProjectName)Server" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+		</Node>
 
 		<Node Name="Compile Tools" Produces="#ToolBinaries">
             <Compile Target="CrashReportClient" Platform="Win64" Configuration="Development" Tag="#ToolBinaries"/>
