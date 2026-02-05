@@ -10,5 +10,7 @@ public class GunsmithExamplesServerTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("GunsmithExamples");
+
+		bUseLoggingInShipping = true;
 	}
 }
