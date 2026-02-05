@@ -19,7 +19,7 @@
 				<Compile Target="$(ProjectName)" Platform="$(Platform)" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 			</ForEach>
 
-			<Compile Target="$(ProjectName)Server" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
+			<Compile Target="$(ProjectName)Server" Platform="Win64" Configuration="$(BuildConfig)" Arguments="-Project=&quot;$(TargetProject)&quot;"/>
 		</Node>
 
 		<Node Name="Compile Tools" Produces="#ToolBinaries">
@@ -43,13 +43,13 @@
 		<Property Name="BCRArgsServer" Value="$(BCRArgs) -target=&quot;$(ProjectName)Server&quot; -platform=Win64 -server" />
 
 		<Node Name="StageServer" >
-            <Command Name="BuildCookRun" Arguments="$(BCRArgsServer) -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
+            <Command Name="BuildCookRun" Arguments="$(BCRArgsServer) -configuration=$(BuildConfig) $(StageAndPackageArguments) -skipbuild -skipcook -stage -pak -iostore -prereqs" />
         </Node>
 
 		<Property Name="PackageOnlyArguments" Value="-archive -archivedirectory=&quot;$(OutputRoot)/$(StagedPlatformFolder)&quot;"/>
 
 		<Node Name="PackageServer" Requires="StageServer">
-            <Command Name="BuildCookRun" Arguments="$(BCRArgs) -platform=Win64 -server -configuration=Development $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
+            <Command Name="BuildCookRun" Arguments="$(BCRArgs) -platform=Win64 -server -configuration=$(BuildConfig) $(StageAndPackageArguments) -skipbuild -skipcook -skipstage -skippak -package $(PackageOnlyArguments)" />
         </Node>
 
 		<!-- Package the client -->
