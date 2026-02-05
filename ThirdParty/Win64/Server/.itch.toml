@@ -1,11 +1,11 @@
 [[actions]]
 name = "run"
-path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer.exe"
+path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer-Win64-Shipping.exe"
 args = ["-server", "-log"]
 console = true
 
 [[actions]]
 name = "Run with bad network conditions"
-path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer.exe"
+path = "/GunsmithExamples/Binaries/Win64/GunsmithExamplesServer-Win64-Shipping.exe"
 args = ["-server", "-log", "-ini:Engine:[PacketSimulationSettings]:PktLag=200", "-ini:Engine:[PacketSimulationSettings]:PktLoss=1"]
 console = true
