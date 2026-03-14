@@ -20,7 +20,7 @@ AGunsmithShootingActor::AGunsmithShootingActor()
 
 void AGunsmithShootingActor::BeginPlay()
 {
-	ShootingComponent->InputProducer = this;
+	ShootingComponent->SetInputProducer(this);
 	
 	Super::BeginPlay();
 }
@@ -42,7 +42,7 @@ void AGunsmithShootingActor::Tick(float DeltaSeconds)
 	}
 }
 
-void AGunsmithShootingActor::ProduceShootingInput_Implementation(int32 SimTimeMs, FGSShootingInputState& InputCmdResult)
+void AGunsmithShootingActor::ProduceShootingInput_Implementation(UGSShootingComponent* TargetShootingComponent, int32 SimTimeMs, FGSShootingInputState& InputCmdResult)
 {
 	FGSDefaultShootingInputs& DefaultInputs = InputCmdResult.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
 

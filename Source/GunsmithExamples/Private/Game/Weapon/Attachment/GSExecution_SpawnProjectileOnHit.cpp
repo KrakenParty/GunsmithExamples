@@ -18,6 +18,7 @@ void UGSExecution_SpawnProjectileOnHit::Setup_Implementation(UGSShootingComponen
 {
 	Super::Setup_Implementation(ShootingComponent, ID);
 
+	CachedShootingComponent = ShootingComponent;
 	NumProjectiles.Register(this, ShootingComponent);
 	ProjectileSpreadRadius.Register(this, ShootingComponent);
 	
@@ -186,7 +187,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 			FGSProjectileEmitterEventData& ProjectileData = EmitterCue.EventData.FindOrAddMutableDataByType<FGSProjectileEmitterEventData>();
 			ProjectileData.InitialStrength = 1.0f;
 		
-			UGSProjectileState* Projectile = WorldStateSubsystem->CreateProjectile(Instigator, EmitterCue, ProjectileToSpawn, FTransform(ProjectileDirection, SetupData.StartLocation));
+			UGSProjectileState* Projectile = WorldStateSubsystem->CreateProjectile(Instigator, CachedShootingComponent.Get(), EmitterCue, ProjectileToSpawn, FTransform(ProjectileDirection, SetupData.StartLocation));
 			// Make sure the new projectile doesn't hit the ground in the same place the last hit was recorded
 			Projectile->GetActiveFrameData().ComponentHitLastFrame = Hit.GetComponent();
 		}

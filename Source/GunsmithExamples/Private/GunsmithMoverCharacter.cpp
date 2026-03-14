@@ -434,7 +434,7 @@ void AGunsmithMoverCharacter::SetupForPlayerController(APlayerController* PC)
 	bHasInitializedController = true;
 }
 
-void AGunsmithMoverCharacter::OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)
+void AGunsmithMoverCharacter::OnProduceSharedShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)
 {
 	FGSDefaultShootingInputs& DefaultInputs = InputCmd.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
 

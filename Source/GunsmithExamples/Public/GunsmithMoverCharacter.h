@@ -123,7 +123,7 @@ protected:
 	// IMoverInputProducerInterface End
 
 	// AGSAnimatedCharacter Begin
-	virtual void OnProduceShootingInput(float DeltaMs, FGSShootingInputState& InputCmd) override;
+	virtual void OnProduceSharedShootingInput(float DeltaMs, FGSShootingInputState& InputCmd) override;
 	virtual void OnADSStateChanged_Implementation(bool bADSEnabled) override;
 	virtual UGSCharacterAnimationData* GetAnimDataForWeaponType_Implementation(const UGSWeaponDataAsset* Weapon) override;
 	// AGSAnimatedCharacter End

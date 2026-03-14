@@ -13,6 +13,7 @@ public class GunsmithExamples : ModuleRules
 			new string[]
 			{
 				"Core",
+				"Gunsmith",
 				"GameplayTags", 
 				"Mover",
 				"GameplayAbilities",
@@ -27,7 +28,6 @@ public class GunsmithExamples : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"Gunsmith",
 				"Mover",
 				"EnhancedInput",
 				"UMG",

@@ -71,6 +71,8 @@ protected:
 private:
 	int32 ActivatedFrame = INDEX_NONE;
 	
+	TWeakObjectPtr<UGSShootingComponent> CachedShootingComponent = nullptr;
+	
 #if WITH_EDITOR
 	FDelegateHandle BlueprintCompiledHandle;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
