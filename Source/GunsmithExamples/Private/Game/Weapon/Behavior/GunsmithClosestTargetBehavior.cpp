@@ -47,15 +47,17 @@ void UGunsmithClosestTargetBehavior::CacheTargetData_Implementation(int32 Frame,
 	}
 	
 	// Set the target data
-	FGSTargetData TargetData = CreateTargetData(SimInput, SimOutput);
+	FGSShooterData ShooterData = CreateShooterData(SimInput, SimOutput);
+	ShooterData.EmitterOutputStart = EyesLocation;
+	
+	FGSTargetData TargetData;
 	TargetData.InterpolationID = 0;
-	TargetData.EmitterOutputStart = EyesLocation;
 	
 	// If a target has been selected
 	if (BestTarget.TargetActor)
 	{
 		TargetData.EmitterOutputEnd = BestTarget.TargetLocation;
-		TargetData.AimDistanceOverride = (TargetData.EmitterOutputEnd - TargetData.EmitterOutputStart).Length();
+		TargetData.AimDistanceOverride = (TargetData.EmitterOutputEnd - ShooterData.EmitterOutputStart).Length();
 	}
 	else // No valid target
 	{
@@ -63,6 +65,7 @@ void UGunsmithClosestTargetBehavior::CacheTargetData_Implementation(int32 Frame,
 		TargetData.EmitterOutputEnd = EyesLocation + LookRotationForward * AimTraceDistance;
 	}
 	
+	SetShooterDataForFrame(Frame, ShooterData);
 	SetTargetDataForFrame(Frame, { TargetData });
 }
 
