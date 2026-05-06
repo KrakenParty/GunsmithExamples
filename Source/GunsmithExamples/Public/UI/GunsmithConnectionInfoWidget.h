@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GunsmithConnectionInfoWidget.generated.h"
 
+class UTextBlock;
 class UEditableText;
 
 /**
@@ -23,8 +24,14 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Gunsmith", meta=(BindWidget))
+	TObjectPtr<UTextBlock> SessionTypeText;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Gunsmith", meta=(BindWidget))
 	TObjectPtr<UEditableText> TextWidget;
 
+	UPROPERTY(EditDefaultsOnly, Category="Gunsmith", meta=(BindWidget))
+	TObjectPtr<UTextBlock> JoiningInfoText;
+	
 private:
 	bool bIsInitialized = false;
 	

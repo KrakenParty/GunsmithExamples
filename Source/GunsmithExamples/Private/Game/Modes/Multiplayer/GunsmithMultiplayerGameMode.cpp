@@ -20,6 +20,7 @@
 
 FName AGunsmithMultiplayerGameMode::SessionName = "GunsmithSession";
 FName AGunsmithMultiplayerGameMode::SearchParam = "IDParam";
+int32 AGunsmithMultiplayerGameMode::BuildUniqueId = 23745657;
 
 void AGunsmithMultiplayerGameMode::StartMatch()
 {
@@ -45,6 +46,7 @@ void AGunsmithMultiplayerGameMode::BeginPlay()
 	FString RoomCode = RoomGuid.ToString().Mid(0, RoomCodeLength);
 	
 	Settings.Settings.Emplace(SearchParam, FOnlineSessionSetting(RoomCode, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing));
+	Settings.BuildUniqueId = BuildUniqueId;
 
 	if (IOnlineSessionPtr SessionInterface = Online::GetSessionInterface())
 	{

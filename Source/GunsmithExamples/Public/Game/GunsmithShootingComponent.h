@@ -19,6 +19,7 @@ class GUNSMITHEXAMPLES_API UGunsmithShootingComponent : public UGSShootingCompon
 public:
 	// UGSShootingComponent Begin
 	virtual void BeginPlay() override;
+	virtual void NotifyDamageDealt_Implementation(const FGSDamageRecord& DamageRecord, bool bIsPredicted) override;
 	// UGSShootingComponent End
 	
 	static FGunsmithShowUIDelegate GlobalShowUIDelegate;

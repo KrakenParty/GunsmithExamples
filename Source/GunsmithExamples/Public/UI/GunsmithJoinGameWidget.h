@@ -45,6 +45,8 @@ private:
 	FDelegateHandle SearchHandle;
 	bool bIsSearchActive = false;
 	TSharedPtr<FOnlineSessionSearch> SearchSettings = nullptr;
+	
+	bool IsValidSessionCode(const FString& SessionString) const;
 
 	UFUNCTION()
 	void OnTravelFailed(UWorld* World, ETravelFailure::Type FailureType, const FString& FailureString);

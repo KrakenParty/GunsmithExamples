@@ -17,7 +17,6 @@
 #include "World/GSWorldStateSubsystem.h"
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
-#include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Character/GSMoverComponent.h"
 #include "Character/GSMoverDeathMode.h"
@@ -37,7 +36,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Netcode/GSNetworkLibrary.h"
-#include "Netcode/GSRollbackProxy.h"
 #include "Sound/SoundBase.h"
 #include "UI/GunsmithHUD.h"
 #include "UI/GunsmithHUDWidget.h"
@@ -45,12 +43,6 @@
 #include "Weapon/GSWeaponsSubsystem.h"
 #include "Weapon/Emitter/GSWeaponEmitter.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
-
-static bool PrintHealthChangesDebug = false;
-static FAutoConsoleVariableRef CVarPrintHealthChangesDebug(
-	TEXT("Gunsmith.Debug.PrintHitReactAnimationDebug"),
-	PrintHealthChangesDebug,
-	TEXT("Print out hit react details when an animation is played"));
 
 static bool InvertMouseY = false;
 static FAutoConsoleVariableRef CVarInvertMouseY(
@@ -184,8 +176,6 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugEquip
 namespace GunsmithMoverCharacterNames
 {
 	static const FName CharacterMotionComponent = TEXT("MoverComponent");
-	static const FName HealthComponent = TEXT("HealthComponent");
-	static const FName RollbackComponent = TEXT("RollbackComponent");
 };
 
 AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& ObjectInitializer)
@@ -193,8 +183,6 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 {		
 	CharacterMotionComponent = CreateDefaultSubobject<UGSMoverComponent>(GunsmithMoverCharacterNames::CharacterMotionComponent);
 	ensure(CharacterMotionComponent);
-
-	HealthComponent = CreateDefaultSubobject<UGSHealthComponent>(GunsmithMoverCharacterNames::HealthComponent);
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
@@ -205,8 +193,6 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 	CameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	CameraComponent->bUsePawnControlRotation = true;
 
-	RollbackComponent = CreateDefaultSubobject<UGSRollbackComponent>(GunsmithMoverCharacterNames::RollbackComponent);
-
 	SetReplicatingMovement(false);	// disable Actor-level movement replication, since our Mover component will handle it
 
 	PrimaryActorTick.bCanEverTick = true;
@@ -215,11 +201,6 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 void AGunsmithMoverCharacter::BeginPlay()
 {	
 	Super::BeginPlay();
-
-	HealthComponent->OnDamageTaken.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDamageTaken);
-	HealthComponent->OnDeath.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnDeath);
-	
-	RollbackComponent->OnPostSimulation.AddDynamic(this, &AGunsmithMoverCharacter::OnPostWorldSimulation);
 	
 	// Setup optional debug history for the gameplay debugger
 	if (UGSAnimationDebugHistory* DebugHistory = RollbackComponent->RegisterDebugHistory<UGSAnimationDebugHistory, GSAnimationDebugHistoryFrame>())
@@ -232,42 +213,13 @@ void AGunsmithMoverCharacter::BeginPlay()
 		DebugHistory->ShootingComponent = ShootingComponent;
 	}
 
-	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
-	if (RollbackProxy)
-	{
-		if (Mesh)
-		{
-			RollbackProxy->SetupTrackedMesh(Mesh, RollbackCollisionProfileName, RollbackCollisionObjectType);
-
-			// Use the character capsule as our simple collision
-			if (CapsuleComponent)
-			{
-				constexpr float SizeMultiplier = 1.4f;
-				const FRotator CapsuleRelativeRotation = CapsuleComponent->GetRelativeRotation();
-				const FVector CapsuleCenter = CapsuleRelativeRotation.Quaternion().GetUpVector() * CapsuleComponent->GetScaledCapsuleHalfHeight();
-				RollbackProxy->SetupCapsuleComponent(NAME_None, CapsuleComponent, CapsuleCenter, CapsuleRelativeRotation, CapsuleComponent->GetScaledCapsuleRadius() * SizeMultiplier, CapsuleComponent->GetScaledCapsuleHalfHeight() * SizeMultiplier, false);
-			}
-
-			// Extract bone info from the skeletal mesh to create the complex collision
-			RollbackProxy->SetupSkeletalMeshComponent(Mesh, RollbackBones);
-
-			if (UGSNetworkLibrary::IsServer(this))
-			{
-				// Make sure we update the anim on the server too
-				Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-			}
-		}
-	}
-
 	if (APlayerController* PC = Cast<APlayerController>(Controller))
 	{
 		SetupForPlayerController(PC);
 	}
 	
 	if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
-	{
-		WorldStateSubsystem->OnRollbackFinalize.AddDynamic(this, &AGunsmithMoverCharacter::OnPostFinalizeFrame);
-		
+	{		
 #if !UE_BUILD_SHIPPING
 		WorldStateSubsystem->RegisterProjectileCreatedDelegate(this).AddDynamic(this, &AGunsmithMoverCharacter::OnProjectileCreated);
 #endif
@@ -591,23 +543,6 @@ FVector AGunsmithMoverCharacter::GetVelocity() const
 	return GetMoverComponent()->GetVelocity();
 }
 
-float AGunsmithMoverCharacter::GetDamageMultiplierForHitComponent_Implementation(const UPrimitiveComponent* Component) const
-{
-	if (AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy())
-	{
-		FGSRollbackProxyColliderData ColliderData;
-		if (RollbackProxy->GetColliderDataForComponent(Component, ColliderData))
-		{
-			if (BoneDamageMultipliers.Contains(ColliderData.BoneName))
-			{
-				return BoneDamageMultipliers[ColliderData.BoneName];
-			}
-		}
-	}
-
-	return 1.0f;
-}
-
 void AGunsmithMoverCharacter::ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult)
 {
 	OnProduceMoverInput(static_cast<float>(SimTimeMs), InputCmdResult);
@@ -615,7 +550,7 @@ void AGunsmithMoverCharacter::ProduceInput_Implementation(int32 SimTimeMs, FMove
 
 void AGunsmithMoverCharacter::OnProduceMoverInput(float DeltaMs, FMoverInputCmdContext& OutInputCmd)
 {
-	if (bIsDead)
+	if (HealthComponent->IsDead())
 	{
 		return;
 	}
@@ -898,145 +833,8 @@ FRotator AGunsmithMoverCharacter::GetAuthoritativeAimRotation() const
 	return LookRotation;
 }
 
-void AGunsmithMoverCharacter::PlayHitReact(int32 Seed, const FVector& HitNormal) const
-{
-	const USkeletalMeshComponent* MeshToUse = GetMesh();
-
-	if (!MeshToUse)
-	{
-		return;
-	}
-	
-	UAnimInstance* AnimInstance = MeshToUse->GetAnimInstance();
-
-	if (!AnimInstance)
-	{
-		return;
-	}
-
-	const TArray<TObjectPtr<UAnimMontage>>* HitReacts;
-	const float ForwardDotProduct = GetActorForwardVector().Dot(HitNormal);
-	const float RightDotProduct = GetActorRightVector().Dot(HitNormal);
-
-	if (RightDotProduct >= -0.5f && RightDotProduct <= 0.5f)
-	{
-		if (ForwardDotProduct > 0.0f)
-		{
-			HitReacts = &HitReactsFront;
-		}
-		else
-		{
-			HitReacts = &HitReactsBack;
-		}
-	}
-	else
-	{
-		if (RightDotProduct > 0.0f)
-		{
-			HitReacts = &HitReactsRight;
-		}
-		else
-		{
-			HitReacts = &HitReactsLeft;
-		}
-	}
-
-	if (HitReacts && HitReacts->Num() > 0)
-	{		
-		FRandomStream NewRand = FRandomStream(Seed);
-		const int32 RandomIndex = NewRand.RandRange(0, HitReacts->Num() - 1);
-		TObjectPtr<UAnimMontage> RandomHitReact = (*HitReacts)[RandomIndex];
-
-		if (PrintHealthChangesDebug)
-		{
-			if (UGSWorldStateSubsystem* WorldStateSubsystem = GetWorld()->GetSubsystem<UGSWorldStateSubsystem>())
-			{
-				FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
-				UE_LOG(LogGunsmith, Log, TEXT("PIEInstance %d Playing hit react %d Frame %d Actual Frame %d"), WorldContext ? WorldContext->PIEInstance : -1, RandomIndex, Seed, WorldStateSubsystem->GetCurrentSimulationFrameIndex().ServerFrame);
-			}
-		}
-		
-		AnimInstance->Montage_Play(RandomHitReact);
-	}
-}
-
-void AGunsmithMoverCharacter::DrawCurrentLocationDebug(bool bRoundToFullFrame, const FName& LogReference)
-{
-	UWorld* World = GetWorld();
-	
-	if (!World || !RollbackComponent)
-	{
-		return;
-	}
-	
-	UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>();
-	AGSRollbackProxy* RollbackProxy = RollbackComponent->GetRollbackProxy();
-
-	if (!WorldStateSubsystem || !RollbackProxy)
-	{
-		return;
-	}
-	
-	FGSFrameIndex CurrentFrameIndex = WorldStateSubsystem->GetCurrentSimulationFrameIndex();
-
-	// Check if the actor is mid rollback. If so we are drawing the values at that frame instead of the active world frame
-	const int32 CurrentRollbackFrame = RollbackComponent->GetCurrentRollbackFrame();
-	if (CurrentRollbackFrame != INDEX_NONE)
-	{
-		CurrentFrameIndex.InterpolatedFrame = CurrentRollbackFrame;
-		CurrentFrameIndex.InterpolatedRemainder = RollbackComponent->GetCurrentRollbackPercentage();
-	}
-	
-	UGSWorldStateSubsystem::SetCustomVLogFrame(this, CurrentFrameIndex.InterpolatedFrame);
-	
-	FGSRollbackProxyFrameState WorldFrameState;
-	FGSRollbackProxyFrameState FrameStateToUse;
-	if (RollbackProxy->GetCurrentFrameState(WorldFrameState))
-	{
-		// If an interpolation percentage is provided we need to find the frame state at the start of the frame so that we can compare against the server frame as that only ever records in full frames
-		int32 PreviousFrameIndex = -1;
-		GSHistoryFrame* PreviousFrame = nullptr;
-		if (bRoundToFullFrame && CurrentFrameIndex.InterpolatedRemainder != 0.0f)
-		{
-			for (UGSTrackedHistory* History : RollbackComponent->GetTrackedHistory())
-			{
-				if (UGSTrackedProxyHistory* ProxyHistory = Cast<UGSTrackedProxyHistory>(History))
-				{
-					PreviousFrameIndex = CurrentFrameIndex.InterpolatedFrame > History->LastFrame ? History->LastFrame : CurrentFrameIndex.InterpolatedFrame - 1;
-					if (ProxyHistory->GetHistoryForFrame(PreviousFrameIndex, PreviousFrame))
-					{
-						GSRollbackProxyHistoryFrame* FromProxyFrame = static_cast<GSRollbackProxyHistoryFrame*>(PreviousFrame);
-						const float PCT = FMath::GetMappedRangeValueClamped(FVector2D(PreviousFrameIndex + PreviousFrame->InterpolatedFramePercentage, CurrentFrameIndex.InterpolatedFrame + CurrentFrameIndex.InterpolatedRemainder), FVector2D(0.0f, 1.0f), CurrentFrameIndex.InterpolatedFrame);
-						FrameStateToUse = AGSRollbackProxy::GetInterpolatedFrameState(FromProxyFrame->FrameState, WorldFrameState, PCT);
-						break;
-					}
-				}
-			}
-
-			if (!PreviousFrame)
-			{
-				UE_LOG(LogGunsmith, Error, TEXT("Unable to find history for frame %d. Cannot provide accurate VLOG data for %s"), PreviousFrameIndex, *GetName());
-				UGSWorldStateSubsystem::ClearCustomVLogFrame(this);
-				return;
-			}
-		}
-		else
-		{
-			FrameStateToUse = WorldFrameState;
-		}
-
-		const float FinalInterpolationPCT = !bRoundToFullFrame ? CurrentFrameIndex.InterpolatedRemainder : 0.0f;
-		constexpr bool bForceDebugString = true;
-		TArray<UPrimitiveComponent*> HitComponents;
-		RollbackProxy->DebugDraw(CurrentFrameIndex.InterpolatedFrame, FinalInterpolationPCT, EGSRollbackProxyCollisionState::Complex, this, FrameStateToUse, false, HitComponents, LogReference, bForceDebugString);
-	}
-	UGSWorldStateSubsystem::ClearCustomVLogFrame(this);
-}
-
 void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted)
 {
-	bIsDead = true;
-
 	ShootingComponent->SetIsShootingDisabled(true);
 	
 	if (RagdollImpulseBone.IsValid() && Mesh)
@@ -1082,34 +880,6 @@ void AGunsmithMoverCharacter::OnDeath(UGSHealthComponent* AffectedHealthComponen
 	}
 }
 
-void AGunsmithMoverCharacter::OnDamageTaken(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted)
-{
-	bool bMatchesPrediction = !bIsPredicted;
-
-	// Prediction only works in fixed tick mode
-	if (UGSNetworkLibrary::GetTickingPolicy(this) == ENetworkPredictionTickingPolicy::Fixed)
-	{
-		if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToSimulatedPredicted)
-		{
-			const bool bShouldPlayPredicted = IsValid(DamageRecord.Causer) && DamageRecord.Causer->GetLocalRole() == ROLE_AutonomousProxy;
-			bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
-		}
-		else if (DamageRecord.DamageApplicationMode == EGSDamageApplicationMode::ApplyToAllPredicted)
-		{
-			const bool bShouldPlayPredicted = GetLocalRole() == ROLE_AutonomousProxy;
-			bMatchesPrediction = bShouldPlayPredicted == bIsPredicted;
-		}
-	}
-	
-	const bool bShouldPlayReact = GetLocalRole() == ROLE_AutonomousProxy && !bIsDead && DamageRecord.Damage > 5.0f && bMatchesPrediction;
-
-	if (bShouldPlayReact)
-	{
-		const FVector HitDirection = GetActorLocation() - DamageRecord.HitSourceLocation;
-		PlayHitReact(DamageRecord.Frame, HitDirection);	
-	}
-}
-
 #if !UE_BUILD_SHIPPING
 void AGunsmithMoverCharacter::EnableDebugMovement(int32 MoveType)
 {
@@ -1120,7 +890,7 @@ void AGunsmithMoverCharacter::EnableDebugMovement(int32 MoveType)
 
 void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 {
-	if (DebugMoveType > 0 && !bIsDead)
+	if (DebugMoveType > 0 && !HealthComponent->IsDead())
 	{
 		TimeDebugMoving += DeltaTime;
 

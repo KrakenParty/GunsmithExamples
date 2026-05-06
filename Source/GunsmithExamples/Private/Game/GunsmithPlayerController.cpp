@@ -8,9 +8,9 @@
 #include "GSGameplayLibrary.h"
 #include "GunsmithBlueprintFunctionLibrary.h"
 #include "Blueprint/UserWidget.h"
-#include "Camera/CameraComponent.h"
 #include "Engine/Engine.h"
 #include "Game/GunsmithSpectatorPawn.h"
+#include "Game/Effects/NumberPops/LyraNumberPopComponent_NiagaraText.h"
 #include "GameFramework/InputDeviceSubsystem.h"
 #include "GameFramework/Pawn.h"
 #include "Health/GSHealthComponent.h"
@@ -35,6 +35,11 @@ static FAutoConsoleCommandWithWorld FCmdGunsmithKillPlayer
 	}),
 	ECVF_Cheat
 );
+
+AGunsmithPlayerController::AGunsmithPlayerController()
+{
+	NumberPopComponent = CreateDefaultSubobject<ULyraNumberPopComponent_NiagaraText>("LyraNumberPopComponent");
+}
 
 void AGunsmithPlayerController::BeginPlay()
 {

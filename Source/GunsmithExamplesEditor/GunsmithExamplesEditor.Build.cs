@@ -21,7 +21,10 @@ public class GunsmithExamplesEditor : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
-                "GunsmithExamples"
+                "Gunsmith",
+                "GunsmithExamples",
+                "NetworkPrediction", 
+                "GunsmithEditor"
             }
         );
     }

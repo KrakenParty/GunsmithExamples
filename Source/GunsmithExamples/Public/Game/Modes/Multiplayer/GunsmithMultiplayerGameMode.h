@@ -24,6 +24,7 @@ class GUNSMITHEXAMPLES_API AGunsmithMultiplayerGameMode : public AGunsmithGameMo
 public:
 	static FName SessionName;
 	static FName SearchParam;
+	static int32 BuildUniqueId;
 
 	// Reset all player states for a new round start
 	void RestartRound(const FGameplayTag& SpecificWeaponTag = FGameplayTag::EmptyTag);

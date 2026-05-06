@@ -20,6 +20,16 @@ void UGunsmithJoinGameWidget::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	ErrorTextWidget->SetVisibility(ESlateVisibility::Collapsed);
+	
+	if (IOnlineSubsystem::DoesInstanceExist(STEAM_SUBSYSTEM))
+	{
+		DestinationTextWidget->SetHintText(FText::FromString("SESSION ID"));
+	}
+	else
+	{
+		DestinationTextWidget->SetHintText(FText::FromString("IP ADDRESS"));
+		DestinationTextWidget->SetText(FText::FromString("127.0.0.1"));
+	}
 }
 
 void UGunsmithJoinGameWidget::NativeDestruct()
@@ -46,41 +56,52 @@ void UGunsmithJoinGameWidget::TravelToDestination()
 	
 	FString ConnectionString = DestinationTextWidget->GetText().ToString();
 	ConnectionString = ConnectionString.TrimStartAndEnd();
-
-	// Disabled session based joining due to not being able to use Steam Sockets
-	/*IOnlineSessionPtr SessionInterface = Online::GetSessionInterface();
-	if (SessionInterface)
+	
+	if (IOnlineSubsystem::DoesInstanceExist(STEAM_SUBSYSTEM))
 	{
-		SearchSettings = MakeShared<FOnlineSessionSearch>();
-		SearchSettings->QuerySettings.Set(AGunsmithMultiplayerGameMode::SearchParam, ConnectionString, EOnlineComparisonOp::Equals);
-		SearchSettings->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
-
-		if (!SearchHandle.IsValid())
+		if (!IsValidSessionCode(ConnectionString))
 		{
-			SearchHandle = SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UGunsmithJoinGameWidget::OnSearchFinished);
+			SetInfoString("Please enter a valid session code", true);
+			return;
 		}
 		
-		if (SessionInterface->FindSessions(0, SearchSettings.ToSharedRef()))
+		// Disabled session based joining due to not being able to use Steam Sockets
+		IOnlineSessionPtr SessionInterface = Online::GetSessionInterface();
+		if (SessionInterface)
 		{
-			bIsSearchActive = true;
-			SetInfoString("Searching...", false);
-		}
-		else
-		{
-			SetInfoString("Unable to find session", true);
-		}
-	}*/
+			SearchSettings = MakeShared<FOnlineSessionSearch>();
+			SearchSettings->QuerySettings.Set(AGunsmithMultiplayerGameMode::SearchParam, ConnectionString, EOnlineComparisonOp::Equals);
+			SearchSettings->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
 
+			if (!SearchHandle.IsValid())
+			{
+				SearchHandle = SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UGunsmithJoinGameWidget::OnSearchFinished);
+			}
+		
+			if (SessionInterface->FindSessions(0, SearchSettings.ToSharedRef()))
+			{
+				bIsSearchActive = true;
+				SetInfoString("Searching...", false);
+			}
+			else
+			{
+				SetInfoString("Unable to find session", true);
+			}
+		}
+	}
+	else
+	{
+		SetInfoString("Connecting...", false);
+		UGameplayStatics::OpenLevel(this, FName(ConnectionString));
+
+		GetWorld()->GetTimerManager().SetTimer(ConnectionTimeoutHandle, FTimerDelegate::CreateUObject(this, &UGunsmithJoinGameWidget::OnConnectionTimeout), 20.0f, false);	
+	}
+	
 	if (!TravelFailedHandle.IsValid())
 	{
 		TravelFailedHandle = GEngine->TravelFailureEvent.AddUObject(this, &UGunsmithJoinGameWidget::OnTravelFailed);
 		FGameDelegates::Get().GetPendingConnectionLostDelegate().AddUObject(this, &UGunsmithJoinGameWidget::OnConnectionLost);
 	}
-
-	SetInfoString("Connecting...", false);
-	UGameplayStatics::OpenLevel(this, FName(ConnectionString));
-
-	GetWorld()->GetTimerManager().SetTimer(ConnectionTimeoutHandle, FTimerDelegate::CreateUObject(this, &UGunsmithJoinGameWidget::OnConnectionTimeout), 20.0f, false);
 }
 
 void UGunsmithJoinGameWidget::SetInfoString(const FString& NewText, bool bIsError) const
@@ -128,8 +149,13 @@ void UGunsmithJoinGameWidget::OnSearchFinished(bool bSuccess)
 	}
 }
 
+bool UGunsmithJoinGameWidget::IsValidSessionCode(const FString& SessionString) const
+{
+	return SessionString.Len() == 5;
+}
+
 void UGunsmithJoinGameWidget::OnTravelFailed(UWorld* World, ETravelFailure::Type FailureType,
-	const FString& FailureString)
+                                             const FString& FailureString)
 {
 	GEngine->TravelFailureEvent.Remove(TravelFailedHandle);
 	TravelFailedHandle.Reset();

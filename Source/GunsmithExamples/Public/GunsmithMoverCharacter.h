@@ -5,10 +5,8 @@
 #include "CoreMinimal.h"
 #include "Character/GSCharacter.h"
 #include "MoverSimulationTypes.h"
-#include "Character/GSAnimatedCharacter.h"
+#include "Character/GSDamageableCharacter.h"
 #include "Game/Effects/LyraContextEffectsInterface.h"
-#include "Netcode/GSRollbackInterface.h"
-#include "Weapon/Target/GSDamageTargetInterface.h"
 #include "GunsmithMoverCharacter.generated.h"
 
 class UInputAction;
@@ -43,10 +41,8 @@ struct GUNSMITHEXAMPLES_API FGSCharacterInputConfig
  *	This is intentionally not using best practises in favour of being more readable
  */
 UCLASS()
-class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSAnimatedCharacter,
+class GUNSMITHEXAMPLES_API AGunsmithMoverCharacter : public AGSDamageableCharacter,
 														public IMoverInputProducerInterface,
-														public IGSDamageTargetInterface,
-														public IGSRollbackInterface,
 														public ILyraContextEffectsInterface
 {
 	GENERATED_BODY()
@@ -65,17 +61,6 @@ public:
 	virtual FRotator GetBaseAimRotation() const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// APawn End
-
-	// IGSRollbackInterface Begin
-	virtual UGSRollbackComponent* GetRollbackComponent_Implementation() const override { return RollbackComponent; }
-	// IGSRollbackInterface End
-
-	// IGSDamageTargetInterface Begin
-	virtual float GetDamageMultiplierForHitComponent_Implementation(const UPrimitiveComponent* Component) const override;
-	virtual UGSHealthComponent* GetHealthComponent_Implementation() const override { return HealthComponent; }
-	virtual bool ShouldBlockEmitterOutputTrace_Implementation(const UGSEmitterOutputDataAsset* EmitterOutputData, const FHitResult& HitResult) const override { return true; }
-	virtual bool CanEmitterOutputBounceOff_Implementation(const UGSEmitterOutputDataAsset* EmitterOutputData) const override { return false; }
-	// IGSDamageTargetInterface End
 
 	/*** Mover ***/
 	
@@ -130,24 +115,6 @@ protected:
 
 	// Save the initial actor rotation into the Player Controllers ControlRotation
 	void SaveInitialActorRotation();
-
-	/*** Collision ***/
-
-	// If specified, damage dealt to a specific collider created from a bone will be multiplied by this amount
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
-	TMap<FName, float> BoneDamageMultipliers;
-
-	// A list of all bones that should be used to generate rollback colliders
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
-	TArray<FName> RollbackBones;
-
-	// Which collision profile should be used for rollback colliders
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
-	FName RollbackCollisionProfileName;
-
-	// Which collision channel object type should be used for rollback colliders
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
-	TEnumAsByte<ECollisionChannel> RollbackCollisionObjectType = ECC_Pawn;
 	
 	/** Input Actions */
 	
@@ -233,14 +200,8 @@ protected:
 
 	/*** Components ***/
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rollback")
-	TObjectPtr<UGSRollbackComponent> RollbackComponent = nullptr;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	TObjectPtr<UGSMoverComponent> CharacterMotionComponent = nullptr;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-	TObjectPtr<UGSHealthComponent> HealthComponent = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
@@ -262,28 +223,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death")
 	float RagdollImpulseStrength = 500.0f;
 
-	// A list of hit reacts to play one at random when hit on the front
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Animation")
-	TArray<TObjectPtr<UAnimMontage>> HitReactsFront;
-
-	// A list of hit reacts to play one at random when hit on the right
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Animation")
-	TArray<TObjectPtr<UAnimMontage>> HitReactsRight;
-
-	// A list of hit reacts to play one at random when hit on the back
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Animation")
-	TArray<TObjectPtr<UAnimMontage>> HitReactsBack;
-
-	// A list of hit reacts to play one at random when hit on the left
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Animation")
-	TArray<TObjectPtr<UAnimMontage>> HitReactsLeft;
-
 	// How long to wait before spawning a new character after death
 	UPROPERTY(EditDefaultsOnly, Category = "Death")
 	float DeathTimeBeforeDestroy = 3.0f;
-
-	// Play a hit react based on which direction the character was hit from
-	void PlayHitReact(int32 Seed, const FVector& HitNormal) const;
 
 	// A sound to play when entering the ADS state
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
@@ -292,6 +234,10 @@ protected:
 	// A sound to play when exiting the ADS state
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	TObjectPtr<USoundBase> EndADSSound = nullptr;
+	
+	/*** Death ***/
+
+	virtual void OnDeath(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted) override;
 
 	/*** Debug ***/
 
@@ -303,8 +249,6 @@ protected:
 
 	UPROPERTY(ReplicatedUsing="OnRep_ServerRequestedDebugMove")
 	int32 ServerRequestedDebugMove = 0;
-
-	virtual void DrawCurrentLocationDebug(bool bRoundToFullFrame, const FName& LogReference) override;
 	
 #if !UE_BUILD_SHIPPING
 public:
@@ -368,16 +312,6 @@ private:
 	void ChangeWeapon(int32 Direction);
 
 	virtual FRotator GetAuthoritativeAimRotation() const;
-
-	/*** Death ***/
-	
-	bool bIsDead = false;
-
-	UFUNCTION()
-	void OnDeath(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted);
-
-	UFUNCTION()
-	void OnDamageTaken(UGSHealthComponent* AffectedHealthComponent, const FGSDamageRecord& DamageRecord, bool bIsPredicted);
 
 	/*** FOV ***/
 	

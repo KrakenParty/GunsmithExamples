@@ -10,6 +10,7 @@ class UGSWeaponDataAsset;
 class UInputAction;
 class UInputMappingContext;
 class UWidget;
+class ULyraNumberPopComponent_NiagaraText;
 struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGunsmithDeviceChangedDelegate, bool, bIsUsingGamepad);
@@ -42,6 +43,8 @@ class GUNSMITHEXAMPLES_API AGunsmithPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
+	AGunsmithPlayerController();
+	
 	// APlayerController Begin
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -76,10 +79,17 @@ public:
 	
 	UFUNCTION(Server, Reliable, Category="Gunsmith")
 	void Server_EquipWeapon(UGSWeaponDataAsset* WeaponData);
+	
+	UFUNCTION(BlueprintCallable, Category="Gunsmith")
+	ULyraNumberPopComponent_NiagaraText* GetNumberPopComponent() const { return NumberPopComponent; }
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TSubclassOf<UGunsmithCommonInputs> CommonInputs = nullptr;
+	
+	// A component that handles all pop up numbers when damage is dealt
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	TObjectPtr<ULyraNumberPopComponent_NiagaraText> NumberPopComponent;
 
 	void OnPausePressed(const FInputActionValue& Value);
 
