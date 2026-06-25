@@ -285,10 +285,6 @@ private:
 	int32 AutoShootProjectileCount = 0;
 	int32 AutoShootProjectileHitCount = 0;
 	
-	bool bIsGrenadeInputDown = false;
-	bool bHasJustPressedGrenadeInput = false;
-	bool bIsGrenadeAnimActive = false;
-	
 	// Tick the debug movement
 	void UpdateDebugMovement(float DeltaTime);
 #endif
@@ -320,6 +316,10 @@ private:
 	bool bIsJumpJustPressed = false;
 	bool bIsJumpPressed = false;
 	bool bIsFlyingActive = false;
+	
+	bool bIsGrenadeInputDown = false;
+	bool bHasJustPressedGrenadeInput = false;
+	bool bIsGrenadeAnimActive = false;
 	
 	void OnMoveTriggered(const FInputActionValue& Value);
 	void OnMoveCompleted(const FInputActionValue& Value);
