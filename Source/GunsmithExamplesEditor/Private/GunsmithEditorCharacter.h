@@ -16,4 +16,8 @@ class AGunsmithEditorCharacter : public AGSAnimatedEditorCharacter
 
 public:
 	AGunsmithEditorCharacter(const FObjectInitializer& ObjectInitializer);
+	
+	// IGSShootingInterface Begin
+	virtual FName GetWeaponAttachmentSocketName_Implementation(const UGSWeaponDataAsset* WeaponDataAsset) const override;
+	// IGSShootingInterface End
 };

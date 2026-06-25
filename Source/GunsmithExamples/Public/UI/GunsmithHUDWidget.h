@@ -28,6 +28,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetWeaponViewModel(UGSWeaponViewModel* WeaponViewModel);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetGrenadeViewModel(UGSWeaponViewModel* WeaponViewModel);
 
 protected:
 	// The widget that displays for lobby owners to start the match
@@ -37,4 +40,12 @@ protected:
 	// The widget that displays for lobby owners to start the match
 	UPROPERTY(EditDefaultsOnly, Category="Gunsmith", meta=(BindWidget))
 	TObjectPtr<UGunsmithHealthVignetteWidget> HealthVignetteWidget;
+	
+	TWeakObjectPtr<const AGunsmithMoverCharacter> CachedCharacter;
+	
+	UFUNCTION()
+	void OnWeaponVMUpdated(UGSWeaponViewModel* WeaponVM, UGSCrosshairViewModel* CrosshairVM);
+	
+	UFUNCTION()
+	void OnGrenadeVMUpdated(UGSWeaponViewModel* WeaponVM, UGSCrosshairViewModel* CrosshairVM);
 };

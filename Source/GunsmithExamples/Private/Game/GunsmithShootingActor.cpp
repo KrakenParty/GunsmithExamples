@@ -45,6 +45,7 @@ void AGunsmithShootingActor::Tick(float DeltaSeconds)
 void AGunsmithShootingActor::ProduceShootingInput_Implementation(UGSShootingComponent* TargetShootingComponent, int32 SimTimeMs, FGSShootingInputState& InputCmdResult)
 {
 	FGSDefaultShootingInputs& DefaultInputs = InputCmdResult.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
+	FGSDefaultCameraInputs& DefaultCameraInputs = InputCmdResult.DataCollection.FindOrAddMutableDataByType<FGSDefaultCameraInputs>();
 
 	DefaultInputs.bIsShooting = TargetPawn.IsValid();
 	
@@ -53,8 +54,8 @@ void AGunsmithShootingActor::ProduceShootingInput_Implementation(UGSShootingComp
 		FVector TargetLocation = TargetPawn->GetActorLocation();
 		TargetLocation.Z += TargetPawn->GetDefaultHalfHeight() / 2;
 
-		DefaultInputs.CameraLocation = GetActorLocation();
-		DefaultInputs.LookRotation = (TargetLocation - DefaultInputs.CameraLocation).Rotation();
+		DefaultCameraInputs.CameraLocation = GetActorLocation();
+		DefaultCameraInputs.LookRotation = (TargetLocation - DefaultCameraInputs.CameraLocation).Rotation();
 	}
 }
 

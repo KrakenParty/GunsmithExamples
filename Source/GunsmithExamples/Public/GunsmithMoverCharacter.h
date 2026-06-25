@@ -60,7 +60,16 @@ public:
 	virtual void OnRep_Controller() override;
 	virtual FRotator GetBaseAimRotation() const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnShootingMontageEnded() override;
+	virtual void OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon, UObject* SpawnedObject, bool bIsMainEmitterInstance) override;
 	// APawn End
+	
+	// IGSShootingInterface Begin
+	virtual FName GetWeaponAttachmentSocketName_Implementation(const UGSWeaponDataAsset* WeaponDataAsset) const override;
+	// IGSShootingInterface End
+	
+	UFUNCTION(BlueprintCallable, Category = "Gunsmith")
+	UGSShootingComponent* GetGrenadeComponent() const { return GrenadeComponent; }
 
 	/*** Mover ***/
 	
@@ -108,6 +117,7 @@ protected:
 	// IMoverInputProducerInterface End
 
 	// AGSAnimatedCharacter Begin
+	virtual void OnProduceShootingInput(UGSShootingComponent* TargetShootingComponent, float DeltaMs, FGSShootingInputState& InputCmd) override;
 	virtual void OnProduceSharedShootingInput(float DeltaMs, FGSShootingInputState& InputCmd) override;
 	virtual void OnADSStateChanged_Implementation(bool bADSEnabled) override;
 	virtual UGSCharacterAnimationData* GetAnimDataForWeaponType_Implementation(const UGSWeaponDataAsset* Weapon) override;
@@ -147,6 +157,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> PreviousWeaponAction = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> GrenadeAction = nullptr;
 	
 	// A list of input actions which when activated, will activate the related equipment slot
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -208,6 +221,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> CameraComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooting")
+	TObjectPtr<UGSShootingComponent> GrenadeComponent = nullptr;
 
 	/*** Animation ***/
 
@@ -269,6 +285,10 @@ private:
 	int32 AutoShootProjectileCount = 0;
 	int32 AutoShootProjectileHitCount = 0;
 	
+	bool bIsGrenadeInputDown = false;
+	bool bHasJustPressedGrenadeInput = false;
+	bool bIsGrenadeAnimActive = false;
+	
 	// Tick the debug movement
 	void UpdateDebugMovement(float DeltaTime);
 #endif
@@ -278,6 +298,9 @@ private:
 	UFUNCTION()
 	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const FGSProjectileFrameState& CurrentFrameData);
 
+	UFUNCTION()
+	void OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon, UObject* SpawnedObject, bool bIsMainEmitterInstance);
+	
 	UFUNCTION()
 	void OnProjectileCreated(UGSProjectileState* ProjectileState);
 
@@ -307,6 +330,8 @@ private:
 	void OnNextWeaponPressed(const FInputActionValue& Value);
 	void OnPreviousWeaponPressed(const FInputActionValue& Value);
 	void OnEquipmentSlotPressed(const FInputActionValue& Value, int32 Slot);
+	void OnGrenadeStarted(const FInputActionValue& Value);
+	void OnGrenadeReleased(const FInputActionValue& Value);
 
 	// Change the active weapon to the slot in input direction
 	void ChangeWeapon(int32 Direction);

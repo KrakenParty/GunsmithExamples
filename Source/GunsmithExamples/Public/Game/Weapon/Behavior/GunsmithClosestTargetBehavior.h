@@ -32,7 +32,7 @@ public:
 	
 protected:	
 	// UGSTargetBehavior Begin
-	virtual void CacheTargetData_Implementation(int32 Frame, const UGSShootingComponent* InShootingComponent, const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput, const FRotator& AuthoritativeLookAtRotation) override;
+	virtual FGSTargetFrameData CreateTargetData_Implementation(const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput, const FRotator& AuthoritativeLookAtRotation) override;
 	// UGSTargetBehavior End
 	
 	// Return a list of potential targets which will later get sorted by weight

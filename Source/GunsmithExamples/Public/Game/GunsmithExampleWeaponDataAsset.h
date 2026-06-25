@@ -17,6 +17,6 @@ class GUNSMITHEXAMPLES_API UGunsmithExampleWeaponDataAsset : public UGSWeaponDat
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon Data Asset|Animation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon Data Asset|Cosmetic|Animation|Character", DisplayName="Character Anim Data")
 	TSubclassOf<UGSCharacterAnimationData> AnimationData = nullptr;
 };

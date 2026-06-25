@@ -200,6 +200,9 @@ void AGunsmithHUD::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		UGSHealthComponent* HealthComponent = UGSGameplayLibrary::GetHealthComponentFromActor(MoverCharacter);
 		HUDWidget->SetHealthViewModel(HealthComponent ? HealthComponent->GetHealthViewModel() : nullptr);
 		HUDWidget->SetWeaponViewModel(UGSGameplayLibrary::GetShootingComponentFromActor(MoverCharacter)->GetWeaponViewModel());
+		
+		UGSShootingComponent* GrenadeComponent = MoverCharacter->GetGrenadeComponent();
+		HUDWidget->SetGrenadeViewModel(GrenadeComponent->GetWeaponViewModel());
 	}
 }
 

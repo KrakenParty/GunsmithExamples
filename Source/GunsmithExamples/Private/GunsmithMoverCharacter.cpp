@@ -41,6 +41,7 @@
 #include "UI/GunsmithHUDWidget.h"
 #include "VisualLogger/VisualLogger.h"
 #include "Weapon/GSWeaponsSubsystem.h"
+#include "Weapon/GSWeaponTypeTags.h"
 #include "Weapon/Emitter/GSWeaponEmitter.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 
@@ -58,6 +59,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Pistol, "Weapon.Tag.Pi
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Shotgun, "Weapon.Tag.Shotgun");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_BeamRifle, "Weapon.Tag.BeamRifle");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_RocketLauncher, "Weapon.Tag.RocketLauncher");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Grenade, "Weapon.Tag.Grenade");
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Scope, "Weapon.Attachment.Scope.Default");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Silencer, "Weapon.Attachment.Silencer.Default");
@@ -66,6 +68,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Attachment_Magazine, "
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile, "Weapon.Emitter.Projectile.Default");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Small, "Weapon.Emitter.Projectile.Small");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Rocket, "Weapon.Emitter.Projectile.Rocket");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Projectile_Grenade, "Weapon.Emitter.Projectile.Grenade");
 // ReSharper restore CppDeclaratorNeverUsed
 
 #if !UE_BUILD_SHIPPING
@@ -176,6 +179,8 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugEquip
 namespace GunsmithMoverCharacterNames
 {
 	static const FName CharacterMotionComponent = TEXT("MoverComponent");
+	static const FName LeftHandSocket = TEXT("weapon_l");
+	static const FName GrenadeComponentName = TEXT("GrenadeComponent");
 };
 
 AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& ObjectInitializer)
@@ -192,6 +197,8 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	CameraComponent->bUsePawnControlRotation = true;
+	
+	GrenadeComponent = CreateDefaultSubobject<UGSShootingComponent>(GunsmithMoverCharacterNames::GrenadeComponentName);
 
 	SetReplicatingMovement(false);	// disable Actor-level movement replication, since our Mover component will handle it
 
@@ -199,7 +206,12 @@ AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& Objec
 }
 
 void AGunsmithMoverCharacter::BeginPlay()
-{	
+{
+	GrenadeComponent->SetInputProducer(this);
+	GrenadeComponent->SetShouldCreateCrosshair(false);
+	
+	GrenadeComponent->OnEmitterEvent.AddUniqueDynamic(this, &AGunsmithMoverCharacter::OnGrenadeEvent);
+	
 	Super::BeginPlay();
 	
 	// Setup optional debug history for the gameplay debugger
@@ -315,6 +327,12 @@ void AGunsmithMoverCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		{
 			Input->BindAction(PreviousWeaponAction, ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnNextWeaponPressed);
 		}
+		
+		if (GrenadeAction)
+		{
+			Input->BindAction(GrenadeAction, ETriggerEvent::Started, this, &AGunsmithMoverCharacter::OnGrenadeStarted);
+			Input->BindAction(GrenadeAction, ETriggerEvent::Completed, this, &AGunsmithMoverCharacter::OnGrenadeReleased);
+		}
 
 		for (int32 i = 0; i < EquipmentSlotActions.Num(); i++)
 		{
@@ -384,39 +402,6 @@ void AGunsmithMoverCharacter::SetupForPlayerController(APlayerController* PC)
 	}
 
 	bHasInitializedController = true;
-}
-
-void AGunsmithMoverCharacter::OnProduceSharedShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)
-{
-	FGSDefaultShootingInputs& DefaultInputs = InputCmd.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
-
-	if (!Controller || GetWorld()->IsNetMode(NM_DedicatedServer))
-	{
-		return;
-	}
-	
-	DefaultInputs.bIsShooting = bIsShootingInputDown || bHasJustPressedShootingInput;
-
-#if !UE_BUILD_SHIPPING
-	DefaultInputs.bIsShooting |= ShootingComponent->GetAutoShootData().PlayerIndex != INDEX_NONE;
-#endif
-	
-	bHasJustPressedShootingInput = false;
-
-	DefaultInputs.bIsADSDown = bIsADSInputDown;
-
-	DefaultInputs.bIsReloadTriggered = bIsReloadTriggered;
-	bIsReloadTriggered = false;
-	
-	DefaultInputs.LookRotation = GetAuthoritativeAimRotation();
-
-	const APlayerController* PlayerController = GetController<APlayerController>();
-	if (PlayerController && PlayerController->PlayerCameraManager)
-	{
-		DefaultInputs.CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-	}
-
-	DefaultInputs.EquippedWeaponSlot = CurrentWeaponSlot;
 }
 
 void AGunsmithMoverCharacter::OnADSStateChanged_Implementation(bool bADSEnabled)
@@ -525,6 +510,36 @@ void AGunsmithMoverCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	FDoRepLifetimeParams Params;
 	Params.bIsPushBased = true;
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, ServerRequestedDebugMove, Params);
+}
+
+void AGunsmithMoverCharacter::OnShootingMontageEnded()
+{
+	Super::OnShootingMontageEnded();
+	
+	bIsGrenadeAnimActive = false;
+}
+
+void AGunsmithMoverCharacter::OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon,
+	UObject* SpawnedObject, bool bIsMainEmitterInstance)
+{
+	// Prevent shooting anim if grenade anim is active
+	if (bIsMainEmitterInstance && bIsGrenadeAnimActive && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
+	{
+		return;
+	}
+	
+	Super::OnWeaponEvent_Implementation(EventType, EquippedWeapon, SpawnedObject, bIsMainEmitterInstance);
+}
+
+FName AGunsmithMoverCharacter::GetWeaponAttachmentSocketName_Implementation(
+	const UGSWeaponDataAsset* WeaponDataAsset) const
+{
+	if (WeaponDataAsset->WeaponType == TAG_Weapon_Type_Grenade)
+	{
+		return GunsmithMoverCharacterNames::LeftHandSocket;
+	}
+	
+	return Super::GetWeaponAttachmentSocketName_Implementation(WeaponDataAsset);
 }
 
 UGSCharacterAnimationData* AGunsmithMoverCharacter::GetAnimDataForWeaponType_Implementation(
@@ -667,6 +682,61 @@ void AGunsmithMoverCharacter::OnProduceMoverInput(float DeltaMs, FMoverInputCmdC
 	}
 }
 
+void AGunsmithMoverCharacter::OnProduceShootingInput(UGSShootingComponent* TargetShootingComponent, float DeltaMs,
+	FGSShootingInputState& InputCmd)
+{
+	FGSDefaultShootingInputs& DefaultInputs = InputCmd.DataCollection.FindOrAddMutableDataByType<FGSDefaultShootingInputs>();
+
+	if (!Controller || GetWorld()->IsNetMode(NM_DedicatedServer))
+	{
+		return;
+	}
+	
+	const bool bIsGrenadeActive = bIsGrenadeInputDown || bIsGrenadeAnimActive;
+	
+	// Main shooting component
+	if (TargetShootingComponent == ShootingComponent)
+	{
+		DefaultInputs.bIsShooting = !bIsGrenadeActive && (bIsShootingInputDown || bHasJustPressedShootingInput);
+		bHasJustPressedShootingInput = false;
+
+#if !UE_BUILD_SHIPPING
+		DefaultInputs.bIsShooting |= ShootingComponent->GetAutoShootData().PlayerIndex != INDEX_NONE;
+#endif
+		
+		DefaultInputs.bIsADSDown = !bIsGrenadeActive && bIsADSInputDown;
+		
+		DefaultInputs.bIsReloadTriggered = !bIsGrenadeActive && bIsReloadTriggered;
+		bIsReloadTriggered = false;
+		
+		DefaultInputs.EquippedWeaponSlot = CurrentWeaponSlot;
+	}
+	// Grenade component
+	else if (TargetShootingComponent == GrenadeComponent)
+	{
+		DefaultInputs.bIsShooting = bIsGrenadeInputDown || bHasJustPressedGrenadeInput;
+		bHasJustPressedGrenadeInput = false;
+	}
+}
+
+void AGunsmithMoverCharacter::OnProduceSharedShootingInput(float DeltaMs, FGSShootingInputState& InputCmd)
+{
+	FGSDefaultCameraInputs& DefaultInputs = InputCmd.DataCollection.FindOrAddMutableDataByType<FGSDefaultCameraInputs>();
+
+	if (!Controller || GetWorld()->IsNetMode(NM_DedicatedServer))
+	{
+		return;
+	}
+	
+	DefaultInputs.LookRotation = GetAuthoritativeAimRotation();
+
+	const APlayerController* PlayerController = GetController<APlayerController>();
+	if (PlayerController && PlayerController->PlayerCameraManager)
+	{
+		DefaultInputs.CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+	}
+}
+
 FRotator AGunsmithMoverCharacter::ApplyRotation(const FRotator& InLookRotation, const FVector2D& LookInputs) const
 {
 	FRotator OutLookRotation = InLookRotation;
@@ -738,6 +808,17 @@ void AGunsmithMoverCharacter::OnEquipmentSlotPressed(const FInputActionValue& Va
 	{
 		CurrentWeaponSlot = Slot;	
 	}
+}
+
+void AGunsmithMoverCharacter::OnGrenadeStarted(const FInputActionValue& Value)
+{
+	bIsGrenadeInputDown = true;
+	bHasJustPressedGrenadeInput = true;
+}
+
+void AGunsmithMoverCharacter::OnGrenadeReleased(const FInputActionValue& Value)
+{
+	bIsGrenadeInputDown = false;
 }
 
 void AGunsmithMoverCharacter::ChangeWeapon(int32 Direction)
@@ -934,6 +1015,16 @@ void AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed(int32 Frame, bool b
 #if !UE_BUILD_SHIPPING
 	UE_LOG(LogGunsmithTests, Log, TEXT("Auto shooting at target %d Hit %d out of %d Percentage %f"), ShootingComponent->GetAutoShootData().PlayerIndex, AutoShootProjectileHitCount, AutoShootProjectileCount, static_cast<float>(AutoShootProjectileHitCount) / FMath::Max(1, AutoShootProjectileCount));
 #endif
+}
+
+void AGunsmithMoverCharacter::OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon,
+	UObject* SpawnedObject, bool bIsMainEmitterInstance)
+{
+	if (bIsMainEmitterInstance && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
+	{
+		PlayShootingAnimation(GrenadeComponent, true);
+		bIsGrenadeAnimActive = true;
+	}
 }
 
 void AGunsmithMoverCharacter::OnProjectileCreated(UGSProjectileState* ProjectileState)

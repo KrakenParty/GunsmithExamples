@@ -16,19 +16,19 @@ UGunsmithClosestTargetBehavior::UGunsmithClosestTargetBehavior()
 	BehaviorTimeline = EGSTargetBehaviorTimeline::SimulatedProxy;
 }
 
-void UGunsmithClosestTargetBehavior::CacheTargetData_Implementation(int32 Frame,
-                                                                    const UGSShootingComponent* InShootingComponent, const UGSShootingTickStartData* SimInput,
-                                                                    const UGSShootingTickEndData* SimOutput, const FRotator& AuthoritativeLookAtRotation)
+FGSTargetFrameData UGunsmithClosestTargetBehavior::CreateTargetData_Implementation(
+	const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput,
+	const FRotator& AuthoritativeLookAtRotation)
 {
-	const FGSDefaultShootingInputs* DefaultShootingInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultShootingInputs>();
+	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultCameraInputs>();
 	
-	if (!ShootingComponent.IsValid() || !DefaultShootingInputs)
+	if (!ShootingComponent.IsValid() || !DefaultCameraInputs)
 	{
-		return;
+		return FGSTargetFrameData();
 	}
 	
 	const FVector EyesLocation = GetEyesLocation(SimInput);
-	const FVector LookRotationForward = DefaultShootingInputs->LookRotation.Vector();
+	const FVector LookRotationForward = DefaultCameraInputs->LookRotation.Vector();
 	
 	// Find the best target
 	TArray<FGunsmithPotentialTargetData> PotentialTargets = GetPotentialTargets(SimInput, SimOutput);
@@ -65,18 +65,17 @@ void UGunsmithClosestTargetBehavior::CacheTargetData_Implementation(int32 Frame,
 		TargetData.EmitterOutputEnd = EyesLocation + LookRotationForward * AimTraceDistance;
 	}
 	
-	SetShooterDataForFrame(Frame, ShooterData);
-	SetTargetDataForFrame(Frame, { TargetData });
+	return { ShooterData, { TargetData }};
 }
 
 bool UGunsmithClosestTargetBehavior::CanTargetActor_Implementation(const FGunsmithPotentialTargetData& PotentialTarget, const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput) const
 {
-	const FGSDefaultShootingInputs* DefaultShootingInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultShootingInputs>();
+	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultCameraInputs>();
 	const FVector EyesLocation = GetEyesLocation(SimInput);
 	const FQuat QuatToTarget = (PotentialTarget.TargetLocation - EyesLocation).ToOrientationQuat();
 	
 	// Is target within max angle
-	const float Distance = DefaultShootingInputs->LookRotation.Quaternion().AngularDistance(QuatToTarget);
+	const float Distance = DefaultCameraInputs->LookRotation.Quaternion().AngularDistance(QuatToTarget);
 	if (FMath::RadiansToDegrees(Distance) > MaxTargetAngle)
 	{
 		return false;
