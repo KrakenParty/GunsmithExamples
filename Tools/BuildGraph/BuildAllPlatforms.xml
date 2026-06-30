@@ -1,0 +1,22 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<Option Name="WorkspaceRoot" DefaultValue="" Description="The root directory for the workspace"/>
+	<Option Name="ProjectName" DefaultValue="GunsmithExamples" Description="Name of the project"/>
+
+	<Agent Name="Properties Agent" Type="Compile">
+
+		<Node Name="Compile">
+			<ForEach Name="TargetPlatform" Values="Win64;Linux">
+				<ForEach Name="TargetType" Values="Client;Server">
+					<ForEach Name="Configuration" Values="Development;Shipping">
+						<Compile Target="$(ProjectName)$(TargetType)" Platform="$(TargetPlatform)" Configuration="$(Configuration)" Arguments="-Project=&quot;$(WorkspaceRoot)/$(ProjectName).uproject&quot;"/>
+					</ForEach>
+				</ForEach>
+			</ForEach>
+		</Node>
+
+	</Agent>
+
+	<Aggregate Name="Build All Platforms" Requires="Compile"/>
+</BuildGraph>

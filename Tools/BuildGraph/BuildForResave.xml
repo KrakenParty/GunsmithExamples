@@ -1,0 +1,16 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<Option Name="WorkspaceRoot" DefaultValue="" Description="The root directory for the workspace"/>
+	<Option Name="ProjectName" DefaultValue="GunsmithExamples" Description="Name of the project"/>
+
+	<Agent Name="Properties Agent" Type="Compile">
+
+		<Node Name="Compile">
+			<Compile Target="$(ProjectName)Editor" Platform="Win64" Configuration="Development" Arguments="-Project=&quot;$(WorkspaceRoot)/$(ProjectName).uproject&quot; -DisablePushModel -NoEngineChanges -NoHotReloadFromIDE"/>
+		</Node>
+
+	</Agent>
+
+	<Aggregate Name="Build" Requires="Compile"/>
+</BuildGraph>

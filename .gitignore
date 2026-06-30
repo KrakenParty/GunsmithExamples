@@ -82,3 +82,5 @@ Plugins/Gunsmith
 GunsmithExamples.uproject.DotSettings.user
 GunsmithExamples.sln.DotSettings
 resave_unversioned.bat
+
+Tools/Local/*
