@@ -65,6 +65,7 @@ public:
 	// APawn End
 	
 	// IGSShootingInterface Begin
+	virtual UGSShootingComponent* GetShootingComponent_Implementation(const FGameplayTag Tag) const override;
 	virtual FName GetWeaponAttachmentSocketName_Implementation(const UGSWeaponDataAsset* WeaponDataAsset) const override;
 	// IGSShootingInterface End
 	

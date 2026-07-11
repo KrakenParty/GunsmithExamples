@@ -52,6 +52,8 @@ static FAutoConsoleVariableRef CVarInvertMouseY(
 	TEXT("Flips mouse Y controls"));
 
 // ReSharper disable CppDeclaratorNeverUsed
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_ShootingComponent_Grenade, "Weapon.ShootingComponent.Grenade");
+
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle, "Weapon.Tag.Rifle");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Alternate, "Weapon.Tag.Rifle.Alternate");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_GunsmithExamples_Weapon_Rifle_Premium, "Weapon.Tag.Rifle.Premium");
@@ -529,6 +531,16 @@ void AGunsmithMoverCharacter::OnWeaponEvent_Implementation(int32 EventType, cons
 	}
 	
 	Super::OnWeaponEvent_Implementation(EventType, EquippedWeapon, SpawnedObject, bIsMainEmitterInstance);
+}
+
+UGSShootingComponent* AGunsmithMoverCharacter::GetShootingComponent_Implementation(const FGameplayTag Tag) const
+{
+	if (Tag == TAG_GunsmithExamples_ShootingComponent_Grenade)
+	{
+		return GrenadeComponent;
+	}
+	
+	return Super::GetShootingComponent_Implementation(Tag);
 }
 
 FName AGunsmithMoverCharacter::GetWeaponAttachmentSocketName_Implementation(

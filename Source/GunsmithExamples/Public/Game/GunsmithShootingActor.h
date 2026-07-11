@@ -25,7 +25,7 @@ public:
 	// AActor End
 
 	// IGSShootingInterface Begin
-	virtual UGSShootingComponent* GetShootingComponent_Implementation() const override { return ShootingComponent; }
+	virtual UGSShootingComponent* GetShootingComponent_Implementation(const FGameplayTag Tag) const override { return ShootingComponent; }
 	virtual void ProduceShootingInput_Implementation(UGSShootingComponent* TargetShootingComponent, int32 SimTimeMs, FGSShootingInputState& InputCmdResult) override;
 	virtual TArray<USceneComponent*> GetWeaponAttachmentComponents_Implementation() const override;
 	// IGSShootingInterface End
