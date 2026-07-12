@@ -122,7 +122,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileSpawned(UGSProjectileState* 
 }
 
 void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	 const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
+	 const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState)
 {
 	if (bExecutionEnded)
 	{
@@ -152,6 +152,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 		int32 PendingFrame = Frame;
 		int32 InterpolatedFrame = Frame;
 		float InterpolatedPercentage = 0.0f;
+		const FGSProjectileFrameState& ProjectileFrameState = FrameState.Get<FGSProjectileFrameState>();
 
 		if (NetworkPredictionWorldManager && !World->IsNetMode(NM_DedicatedServer))
 		{
@@ -160,7 +161,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 			InterpolatedPercentage = FixedTickState.Interpolation.PCT;	
 		}
 
-		const int32 RandomSeed = FrameState.ProjectileID + FrameState.NumBounces + GetExecutionUniqueID();
+		const int32 RandomSeed = ProjectileFrameState.ProjectileID + ProjectileFrameState.NumBounces + GetExecutionUniqueID();
 		FRandomStream RandStream(RandomSeed);
 
 		const float SpreadRadius = ProjectileSpreadRadius.GetModifiedValue();
@@ -174,7 +175,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 			const FQuat ProjectileDirection = RandomRotator.RotateVector(Hit.ImpactNormal).ToOrientationQuat();
 
 			FGSEmitterEventCue EmitterCue;
-			EmitterCue.EventID = FrameState.ProjectileID;
+			EmitterCue.EventID = ProjectileFrameState.ProjectileID;
 			
 			FGSDefaultEmitterEventData& SetupData = EmitterCue.EventData.FindOrAddMutableDataByType<FGSDefaultEmitterEventData>();
 			SetupData.AttachmentID = GetExecutionUniqueID();
@@ -189,7 +190,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 		
 			UGSProjectileState* Projectile = WorldStateSubsystem->CreateProjectile(Instigator, CachedShootingComponent.Get(), EmitterCue, ProjectileToSpawn, FTransform(ProjectileDirection, SetupData.StartLocation));
 			// Make sure the new projectile doesn't hit the ground in the same place the last hit was recorded
-			Projectile->GetActiveFrameData().ComponentHitLastFrame = Hit.GetComponent();
+			Projectile->GetActiveFrameData().GetMutable<FGSProjectileFrameState>().ComponentHitLastFrame = Hit.GetComponent();
 		}
 	}
 }

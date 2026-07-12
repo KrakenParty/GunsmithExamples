@@ -61,7 +61,7 @@ public:
 	virtual FRotator GetBaseAimRotation() const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnShootingMontageEnded() override;
-	virtual void OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon, UObject* SpawnedObject, bool bIsMainEmitterInstance) override;
+	virtual void OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon, const FInstancedStruct& EventData) override;
 	// APawn End
 	
 	// IGSShootingInterface Begin
@@ -291,12 +291,12 @@ private:
 #endif
 
 	UFUNCTION()
-	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState);
+	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState);
 	UFUNCTION()
-	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const FGSProjectileFrameState& CurrentFrameData);
+	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const FInstancedStruct& CurrentFrameData);
 
 	UFUNCTION()
-	void OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon, UObject* SpawnedObject, bool bIsMainEmitterInstance);
+	void OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon, const FInstancedStruct& EventData);
 	
 	UFUNCTION()
 	void OnProjectileCreated(UGSProjectileState* ProjectileState);

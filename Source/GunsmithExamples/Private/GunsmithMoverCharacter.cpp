@@ -521,16 +521,16 @@ void AGunsmithMoverCharacter::OnShootingMontageEnded()
 	bIsGrenadeAnimActive = false;
 }
 
-void AGunsmithMoverCharacter::OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon,
-	UObject* SpawnedObject, bool bIsMainEmitterInstance)
+void AGunsmithMoverCharacter::OnWeaponEvent_Implementation(int32 EventType, const FGSEquipData& EquippedWeapon, const FInstancedStruct& EventData)
 {
 	// Prevent shooting anim if grenade anim is active
-	if (bIsMainEmitterInstance && bIsGrenadeAnimActive && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
+	const FGSEmitterEventData* EmitterEventData = EventData.GetPtr<FGSEmitterEventData>();
+	if (EmitterEventData && EmitterEventData->bIsMainEmitterInstance && bIsGrenadeAnimActive && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
 	{
 		return;
 	}
 	
-	Super::OnWeaponEvent_Implementation(EventType, EquippedWeapon, SpawnedObject, bIsMainEmitterInstance);
+	Super::OnWeaponEvent_Implementation(EventType, EquippedWeapon, EventData);
 }
 
 UGSShootingComponent* AGunsmithMoverCharacter::GetShootingComponent_Implementation(const FGameplayTag Tag) const
@@ -1005,7 +1005,7 @@ void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 #endif
 
 void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	const UGSProjectileState* ProjectileState, const FGSProjectileFrameState& FrameState)
+	const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState)
 {
 #if !UE_BUILD_SHIPPING
 	if (APawn* HitPawn = Cast<APawn>(Hit.GetActor()))
@@ -1022,7 +1022,7 @@ void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const 
 }
 
 void AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult,
-	 UGSProjectileState* ProjectileState, const FGSProjectileFrameState& CurrentFrameData)
+	 UGSProjectileState* ProjectileState, const FInstancedStruct& CurrentFrameData)
 {
 #if !UE_BUILD_SHIPPING
 	UE_LOG(LogGunsmithTests, Log, TEXT("Auto shooting at target %d Hit %d out of %d Percentage %f"), ShootingComponent->GetAutoShootData().PlayerIndex, AutoShootProjectileHitCount, AutoShootProjectileCount, static_cast<float>(AutoShootProjectileHitCount) / FMath::Max(1, AutoShootProjectileCount));
@@ -1030,9 +1030,10 @@ void AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed(int32 Frame, bool b
 }
 
 void AGunsmithMoverCharacter::OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon,
-	UObject* SpawnedObject, bool bIsMainEmitterInstance)
+	const FInstancedStruct& EventData)
 {
-	if (bIsMainEmitterInstance && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
+	const FGSEmitterEventData* EmitterData = EventData.GetPtr<FGSEmitterEventData>();
+	if (EmitterData && EmitterData->bIsMainEmitterInstance && (EventType == static_cast<int32>(EGSWeaponEmitterEventType::Trigger) || EventType == static_cast<int32>(EGSWeaponEmitterEventType::Hold)))
 	{
 		PlayShootingAnimation(GrenadeComponent, true);
 		bIsGrenadeAnimActive = true;
