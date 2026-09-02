@@ -414,6 +414,10 @@
 		{
 			"Name": "SteamSockets",
 			"Enabled": true
+		},
+		{
+			"Name": "ChaosMover",
+			"Enabled": true
 		}
 	]
 }
