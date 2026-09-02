@@ -84,3 +84,5 @@ GunsmithExamples.sln.DotSettings
 resave_unversioned.bat
 
 Tools/Local/*
+Automation_GunsmithExamples.slnx
+GunsmithExamples.slnx
