@@ -725,7 +725,7 @@ void AGunsmithMoverCharacter::OnProduceShootingInput(UGSShootingComponent* Targe
 	}
 	// Grenade component
 	else if (TargetShootingComponent == GrenadeComponent)
-	{
+	{		
 		DefaultInputs.bIsShooting = bIsGrenadeInputDown || bHasJustPressedGrenadeInput;
 		bHasJustPressedGrenadeInput = false;
 	}

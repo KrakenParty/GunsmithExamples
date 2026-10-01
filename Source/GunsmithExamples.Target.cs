@@ -21,6 +21,8 @@ public class GunsmithExamplesTarget : TargetRules
 		bUseLoggingInShipping = true;
 		bUseExecCommandsInShipping = true;
 		
+		bUseXGEController = false;
+		
 		ProjectDefinitions.Add("UE_PROJECT_STEAMSHIPPINGID=3822750");
 	}
 }

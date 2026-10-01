@@ -20,7 +20,7 @@ class GUNSMITHEXAMPLES_API UGunsmithGASHealthComponent : public UGSHealthCompone
 public:	
 	// UGSHealthComponent Begin
 	virtual void BeginPlay() override;
-	virtual void UpdateHealthViewModel_Implementation(const FGSHealthSyncState& Sync, const FGSHealthAuxState& Aux) override;
+	virtual void UpdateHealthViewModel_Implementation(const FGSDefaultHealthSyncState& Sync) override;
 	virtual void ApplyDamage_Implementation(FGSDamageRequest& Request) override;
 	// UGSHealthComponent End
 

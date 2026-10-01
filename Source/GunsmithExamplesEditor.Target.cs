@@ -12,5 +12,7 @@ public class GunsmithExamplesEditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("GunsmithExamples");
+
+		bUseXGEController = false;
 	}
 }

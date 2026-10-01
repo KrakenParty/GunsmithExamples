@@ -47,8 +47,7 @@ void UGunsmithGASHealthComponent::BeginPlay()
 	}
 }
 
-void UGunsmithGASHealthComponent::UpdateHealthViewModel_Implementation(const FGSHealthSyncState& Sync,
-                                                                       const FGSHealthAuxState& Aux)
+void UGunsmithGASHealthComponent::UpdateHealthViewModel_Implementation(const FGSDefaultHealthSyncState& Sync)
 {
 	// Prevent health updates from the simulation as it will be driven entirely by GAS
 }

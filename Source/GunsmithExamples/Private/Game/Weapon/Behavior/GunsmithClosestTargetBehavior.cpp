@@ -20,7 +20,7 @@ FGSTargetFrameData UGunsmithClosestTargetBehavior::CreateTargetData_Implementati
 	const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput,
 	const FRotator& AuthoritativeLookAtRotation)
 {
-	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultCameraInputs>();
+	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState()->DataCollection.FindDataByType<FGSDefaultCameraInputs>();
 	
 	if (!ShootingComponent.IsValid() || !DefaultCameraInputs)
 	{
@@ -70,7 +70,7 @@ FGSTargetFrameData UGunsmithClosestTargetBehavior::CreateTargetData_Implementati
 
 bool UGunsmithClosestTargetBehavior::CanTargetActor_Implementation(const FGunsmithPotentialTargetData& PotentialTarget, const UGSShootingTickStartData* SimInput, const UGSShootingTickEndData* SimOutput) const
 {
-	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState().DataCollection.FindDataByType<FGSDefaultCameraInputs>();
+	const FGSDefaultCameraInputs* DefaultCameraInputs = SimInput->GetInputState()->DataCollection.FindDataByType<FGSDefaultCameraInputs>();
 	const FVector EyesLocation = GetEyesLocation(SimInput);
 	const FQuat QuatToTarget = (PotentialTarget.TargetLocation - EyesLocation).ToOrientationQuat();
 	

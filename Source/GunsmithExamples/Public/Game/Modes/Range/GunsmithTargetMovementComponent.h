@@ -6,6 +6,7 @@
 #include "NetworkPredictionComponent.h"
 #include "NetworkPredictionStateTypes.h"
 #include "Netcode/GSRollbackNetProxy.h"
+#include "Weapon/GSSharedInputSimComponent.h"
 #include "GunsmithTargetMovementComponent.generated.h"
 
 class UGunsmithTargetMovementComponent;
