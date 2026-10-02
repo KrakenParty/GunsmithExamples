@@ -8,6 +8,7 @@
 #include "GunsmithGASHealthComponent.generated.h"
 
 struct FOnAttributeChangeData;
+struct FGSDefaultHealthSyncState;
 
 /**
  *	A custom health component that reports attributes to the health view model instead of using NPP

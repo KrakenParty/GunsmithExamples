@@ -9,6 +9,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Weapon/GSShootingComponent.h"
+#include "Weapon/GSShootingComponentSimulation.h"
 
 
 UGunsmithClosestTargetBehavior::UGunsmithClosestTargetBehavior()
