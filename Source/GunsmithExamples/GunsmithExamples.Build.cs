@@ -43,5 +43,11 @@ public class GunsmithExamples : ModuleRules
 				"DeveloperSettings"
 			}
 		);
+
+		PrivateDefinitions.AddRange(new string[]
+		{
+			"DEBUG_NETWORK_PHYSICS=1",
+			"DEBUG_REWIND_DATA=1"
+		});
 	}
 }

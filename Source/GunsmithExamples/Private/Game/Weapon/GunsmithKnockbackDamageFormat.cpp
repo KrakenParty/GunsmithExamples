@@ -49,11 +49,17 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 		HitVector = FMath::VInterpNormalRotationTo(TargetUpVector, HitVectorNormalized, 1.0f, DesiredDegrees);
 	}
 
-	// Create a new impulse to be added to the Mover component via Layered Move
-	TSharedPtr<FApplyVelocityEffect> LaunchMove = MakeShared<FApplyVelocityEffect>();
-	LaunchMove->VelocityToApply = HitVector.GetSafeNormal() * LaunchStrength;
-	LaunchMove->bAdditiveVelocity = true;
-	LaunchMove->ForceMovementMode = DefaultModeNames::Falling;
-	
-	MoverComponent->QueueInstantMovementEffect(LaunchMove);
+	AsyncTask(ENamedThreads::GameThread, [HitVector, LaunchStrength, MoverComponent]()
+	{
+		if (IsValid(MoverComponent))
+		{
+			// Create a new impulse to be added to the Mover component via Layered Move
+			TSharedPtr<FApplyVelocityEffect> LaunchMove = MakeShared<FApplyVelocityEffect>();
+			LaunchMove->VelocityToApply = HitVector.GetSafeNormal() * LaunchStrength;
+			LaunchMove->bAdditiveVelocity = true;
+			LaunchMove->ForceMovementMode = DefaultModeNames::Falling;
+		
+			MoverComponent->QueueInstantMovementEffect(LaunchMove);
+		}
+	});
 }

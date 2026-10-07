@@ -3,7 +3,7 @@
 #include "GunsmithEditorCharacter.h"
 
 #include "GunsmithEditorShootingComponent.h"
-#include "Weapon/GSWeaponTypeTags.h"
+#include "Weapon/GSWeaponTags.h"
 
 namespace GunsmithEditorCharacterNames
 {

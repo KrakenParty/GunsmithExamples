@@ -31,7 +31,9 @@
 			"TargetAllowList": [
 				"Editor"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Mover",
@@ -40,7 +42,9 @@
 		{
 			"Name": "MoverExamples",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Gunsmith",
@@ -66,32 +70,44 @@
 		{
 			"Name": "ActorSequence",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "N10XSourceCodeAccess",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ActorLayerUtilities",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AndroidFileServer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AndroidMedia",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AndroidMoviePlayer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "OnlineSubsystemGooglePlay",
@@ -99,67 +115,90 @@
 			"SupportedTargetPlatforms": [
 				"Android"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AndroidPermission",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AppleImageUtils",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AppleMoviePlayer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ArchVisCharacter",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ChaosCloth",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "NiagaraSimCaching",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AudioCapture",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Metasound",
-			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"Enabled": true
 		},
 		{
 			"Name": "Synthesis",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AutomationUtils",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AvfMedia",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "BackChannel",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Bridge",
@@ -169,142 +208,198 @@
 				"Mac",
 				"Linux"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CableComponent",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ChangelistReview",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CharacterAI",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ChunkDownloader",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CodeLiteSourceCodeAccess",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CmdLinkServer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CryptoKeys",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "CustomMeshComponent",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "DatasmithContent",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "DumpGPUServices",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "EnvironmentQueryEditor",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Fab",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "FacialAnimation",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "FastBuildController",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ChaosEditor",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "AlembicImporter",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "GeometryCache",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "GLTFExporter",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "GoogleCloudMessaging",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "GooglePAD",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MediaCompositing",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MediaPlate",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ImgMedia",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "IOSDeviceProfileSelector",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "KDevelopSourceCodeAccess",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "InterchangeTests",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MeshPainting",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "InterchangeEditor",
@@ -314,7 +409,9 @@
 				"Linux",
 				"Mac"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Interchange",
@@ -324,42 +421,58 @@
 				"Linux",
 				"Mac"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "LauncherChunkInstaller",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "NullSourceCodeAccess",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "LinuxDeviceProfileSelector",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "LocalizableMessage",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MacGraphicsSwitching",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MediaPlayerEditor",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "WebMMoviePlayer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MsQuic",
@@ -369,7 +482,9 @@
 				"Linux",
 				"Mac"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "OnlineSubsystemIOS",
@@ -378,82 +493,114 @@
 				"IOS",
 				"TVOS"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "OpenImageDenoise",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Paper2D",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "PlasticSourceControl",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "PlatformCrypto",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "Dataflow",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ResonanceAudio",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "ProceduralMeshComponent",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "RenderDocPlugin",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "RenderGraphInsights",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "SoundFields",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "SpeedTreeImporter",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "SubversionSourceControl",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "VisualStudioCodeSourceCodeAccess",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "WindowsMoviePlayer",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "WmfMedia",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "XCodeSourceCodeAccess",
@@ -461,32 +608,44 @@
 			"SupportedTargetPlatforms": [
 				"Mac"
 			],
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "WorldPartitionHLODUtilities",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "WorldMetrics",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "MobileLauncherProfileWizard",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "XGEController",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "NetworkPredictionExtras",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		},
 		{
 			"Name": "GameplayAbilities",
@@ -499,7 +658,9 @@
 		{
 			"Name": "CompositeCore",
 			"Enabled": true,
-			"TargetConfigurationAllowList": ["Debug"]
+			"TargetConfigurationAllowList": [
+				"Debug"
+			]
 		}
 	]
 }

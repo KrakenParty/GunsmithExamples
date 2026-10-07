@@ -41,7 +41,7 @@
 #include "UI/GunsmithHUDWidget.h"
 #include "VisualLogger/VisualLogger.h"
 #include "Weapon/GSWeaponsSubsystem.h"
-#include "Weapon/GSWeaponTypeTags.h"
+#include "Weapon/GSWeaponTags.h"
 #include "Weapon/Emitter/GSWeaponEmitter.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
 
