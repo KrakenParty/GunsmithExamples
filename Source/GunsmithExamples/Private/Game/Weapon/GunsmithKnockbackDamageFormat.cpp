@@ -5,8 +5,10 @@
 
 #include "DrawDebugHelpers.h"
 #include "GunsmithMoverCharacter.h"
+#include "ChaosMover/Character/Effects/ChaosCharacterApplyVelocityEffect.h"
 #include "Character/GSMoverComponent.h"
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
+#include "World/GSWorldStateSubsystem.h"
 
 
 void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, const FVector& DamageLocation, AActor* HitActor,
@@ -48,18 +50,40 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 	{
 		HitVector = FMath::VInterpNormalRotationTo(TargetUpVector, HitVectorNormalized, 1.0f, DesiredDegrees);
 	}
-
-	AsyncTask(ENamedThreads::GameThread, [HitVector, LaunchStrength, MoverComponent]()
+	
+	bool bUsesChaos = false;
+	UWorld* World = GetWorld();
+	
+	if (World)
+	{
+		if (UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>())
+		{
+			bUsesChaos = WorldStateSubsystem->GetUsesAsyncPhysics();
+		}
+	}
+	
+	AsyncTask(ENamedThreads::GameThread, [bUsesChaos, HitVector, LaunchStrength, MoverComponent]()
 	{
 		if (IsValid(MoverComponent))
 		{
-			// Create a new impulse to be added to the Mover component via Layered Move
-			TSharedPtr<FApplyVelocityEffect> LaunchMove = MakeShared<FApplyVelocityEffect>();
-			LaunchMove->VelocityToApply = HitVector.GetSafeNormal() * LaunchStrength;
-			LaunchMove->bAdditiveVelocity = true;
-			LaunchMove->ForceMovementMode = DefaultModeNames::Falling;
-		
-			MoverComponent->QueueInstantMovementEffect(LaunchMove);
+			if (bUsesChaos)
+			{
+				TSharedPtr<FChaosCharacterApplyVelocityEffect> ChaosVelocityEffect = MakeShared<FChaosCharacterApplyVelocityEffect>();
+				ChaosVelocityEffect->VelocityOrImpulseToApply = HitVector.GetSafeNormal() * LaunchStrength;
+				ChaosVelocityEffect->Mode = EChaosMoverVelocityEffectMode::AdditiveVelocity;
+
+				MoverComponent->QueueInstantMovementEffect(ChaosVelocityEffect);
+			}
+			else
+			{
+				// Create a new impulse to be added to the Mover component via Layered Move
+				TSharedPtr<FApplyVelocityEffect> LaunchMove = MakeShared<FApplyVelocityEffect>();
+				LaunchMove->VelocityToApply = HitVector.GetSafeNormal() * LaunchStrength;
+				LaunchMove->bAdditiveVelocity = true;
+				LaunchMove->ForceMovementMode = DefaultModeNames::Falling;
+
+				MoverComponent->QueueInstantMovementEffect(LaunchMove);
+			}
 		}
 	});
 }

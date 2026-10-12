@@ -60,7 +60,7 @@ protected:
 	UFUNCTION()
 	virtual void OnProjectileSpawned(UGSProjectileState* Projectile);
 	UFUNCTION()
-	virtual void OnProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState);
+	virtual void OnProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& FrameState);
 
 	// Return true if a projectile can be spawned on the target surface
 	virtual bool CanSpawnOnTargetHit(const FHitResult& Hit, const UGSProjectileState* ProjectileState) const;

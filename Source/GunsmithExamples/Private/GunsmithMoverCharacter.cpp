@@ -1005,7 +1005,7 @@ void AGunsmithMoverCharacter::UpdateDebugMovement(float DeltaTime)
 #endif
 
 void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState)
+	const UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& FrameState)
 {
 #if !UE_BUILD_SHIPPING
 	if (APawn* HitPawn = Cast<APawn>(Hit.GetActor()))
@@ -1022,7 +1022,7 @@ void AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget(int32 Frame, const 
 }
 
 void AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult,
-	 UGSProjectileState* ProjectileState, const FInstancedStruct& CurrentFrameData)
+	 UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& CurrentFrameData)
 {
 #if !UE_BUILD_SHIPPING
 	UE_LOG(LogGunsmithTests, Log, TEXT("Auto shooting at target %d Hit %d out of %d Percentage %f"), ShootingComponent->GetAutoShootData().PlayerIndex, AutoShootProjectileHitCount, AutoShootProjectileCount, static_cast<float>(AutoShootProjectileHitCount) / FMath::Max(1, AutoShootProjectileCount));
@@ -1047,8 +1047,8 @@ void AGunsmithMoverCharacter::OnProjectileCreated(UGSProjectileState* Projectile
 	{
 		AutoShootProjectileCount++;
 
-		ProjectileState->OnProjectileHitTarget.AddDynamic(this, &AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget);
-		ProjectileState->OnProjectileDestroyed.AddDynamic(this, &AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed);
+		ProjectileState->OnProjectileHitTarget.AddUObject(this, &AGunsmithMoverCharacter::OnAutoShootProjectileHitTarget);
+		ProjectileState->OnProjectileDestroyed.AddUObject(this, &AGunsmithMoverCharacter::OnAutoShootProjectileDestroyed);
 	}
 #endif
 }

@@ -117,12 +117,13 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileSpawned(UGSProjectileState* 
 {
 	if (Projectile && DoesProjectileMatchFilter(Projectile))
 	{
-		Projectile->OnProjectileHitTarget.AddDynamic(this, &UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget);
+		FScopeLock Lock(&Projectile->OnProjectileHitLock);
+		Projectile->OnProjectileHitTarget.AddUObject(this, &UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget);
 	}
 }
 
 void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	 const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState)
+	 const UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& FrameState)
 {
 	if (bExecutionEnded)
 	{
