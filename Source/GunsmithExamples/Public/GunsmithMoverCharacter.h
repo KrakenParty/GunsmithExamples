@@ -18,6 +18,13 @@ class UAnimMontage;
 struct FInputActionValue;
 struct FGSProjectileFrameState;
 
+namespace GunsmithMoverCharacterNames
+{
+	static const FName CharacterMotionComponent = TEXT("MoverComponent");
+	static const FName LeftHandSocket = TEXT("weapon_l");
+	static const FName GrenadeComponentName = TEXT("GrenadeComponent");
+};
+
 /*
  *	A struct containing parameters that affect a characters input
  */

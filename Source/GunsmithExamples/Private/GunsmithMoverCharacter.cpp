@@ -178,13 +178,6 @@ static FAutoConsoleCommandWithWorldAndArgs FCmdGunsmithDebugEquip
 	})
 );
 
-namespace GunsmithMoverCharacterNames
-{
-	static const FName CharacterMotionComponent = TEXT("MoverComponent");
-	static const FName LeftHandSocket = TEXT("weapon_l");
-	static const FName GrenadeComponentName = TEXT("GrenadeComponent");
-};
-
 AGunsmithMoverCharacter::AGunsmithMoverCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass(GSCharacterNames::ShootingComponentName, UGunsmithShootingComponent::StaticClass()))
 {		

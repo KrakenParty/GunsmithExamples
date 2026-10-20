@@ -16,7 +16,8 @@ public class GunsmithExamples : ModuleRules
 				"Gunsmith",
 				"GameplayTags", 
 				"Mover",
-				"GameplayAbilities",
+				"GameplayAbilities", 
+				"ChaosMover",
 			}
 		);
 			
@@ -40,8 +41,7 @@ public class GunsmithExamples : ModuleRules
 				"ModelViewViewModel", 
 				"Niagara",
 				"PhysicsCore",
-				"DeveloperSettings", 
-				"ChaosMover"
+				"DeveloperSettings"
 			}
 		);
 
