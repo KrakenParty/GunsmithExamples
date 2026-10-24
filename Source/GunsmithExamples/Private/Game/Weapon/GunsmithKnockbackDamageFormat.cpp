@@ -5,10 +5,13 @@
 
 #include "DrawDebugHelpers.h"
 #include "GunsmithMoverCharacter.h"
-#include "ChaosMover/Character/Effects/ChaosCharacterApplyVelocityEffect.h"
 #include "Character/GSMoverComponent.h"
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "World/GSWorldStateSubsystem.h"
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
+#include "ChaosMover/Character/Effects/ChaosCharacterApplyVelocityEffect.h"
+#endif
 
 
 void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, const FVector& DamageLocation, AActor* HitActor,
@@ -68,11 +71,13 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 		{
 			if (bUsesChaos)
 			{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 				TSharedPtr<FChaosCharacterApplyVelocityEffect> ChaosVelocityEffect = MakeShared<FChaosCharacterApplyVelocityEffect>();
 				ChaosVelocityEffect->VelocityOrImpulseToApply = HitVector.GetSafeNormal() * LaunchStrength;
 				ChaosVelocityEffect->Mode = EChaosMoverVelocityEffectMode::AdditiveVelocity;
 
 				MoverComponent->QueueInstantMovementEffect(ChaosVelocityEffect);
+#endif
 			}
 			else
 			{

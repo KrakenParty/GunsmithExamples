@@ -2,40 +2,48 @@
 
 #include "Game/GunsmithChaosMoverComponent.h"
 
+
+#include "DefaultMovementSet/CharacterMoverSimulationTypes.h"
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 #include "ChaosMover/ChaosMoverLog.h"
 #include "ChaosMover/Backends/ChaosMoverBackend.h"
 #include "ChaosMover/Character/ChaosCharacterInputs.h"
 #include "ChaosMover/Character/Modes/ChaosFallingMode.h"
 #include "ChaosMover/Character/Modes/ChaosFlyingMode.h"
 #include "ChaosMover/Character/Modes/ChaosWalkingMode.h"
-#include "DefaultMovementSet/CharacterMoverSimulationTypes.h"
+#endif
 
 UGunsmithChaosMoverComponent::UGunsmithChaosMoverComponent()
 {
 	// Default movement modes
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	MovementModes.Add(DefaultModeNames::Walking, CreateDefaultSubobject<UChaosWalkingMode>(TEXT("DefaultChaosWalkingMode")));
 	MovementModes.Add(DefaultModeNames::Falling, CreateDefaultSubobject<UChaosFallingMode>(TEXT("DefaultChaosFallingMode")));
 	MovementModes.Add(DefaultModeNames::Flying, CreateDefaultSubobject<UChaosFlyingMode>(TEXT("DefaultChaosFlyingMode")));
+#endif
 
 	StartingMovementMode = DefaultModeNames::Falling;
 
 	bHandleJump = false;
 	bHandleStanceChanges = false;
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	BackendClass = UChaosMoverBackendComponent::StaticClass();
+#endif
 }
 
 bool UGunsmithChaosMoverComponent::TryGetFloorCheckHitResult(FHitResult& OutHitResult) const
 {
 	if (bFloorResultSet)
 	{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 		OutHitResult = LatestFloorResult.HitResult;
 		return true;
+#endif
 	}
-	else
-	{
-		return Super::TryGetFloorCheckHitResult(OutHitResult);
-	}
+		
+	return Super::TryGetFloorCheckHitResult(OutHitResult);
 }
 
 void UGunsmithChaosMoverComponent::ProduceInput(const int32 DeltaTimeMS, FMoverInputCmdContext* Cmd)
@@ -47,9 +55,11 @@ void UGunsmithChaosMoverComponent::ProduceInput(const int32 DeltaTimeMS, FMoverI
 	// Add launch input data if launch velocity is set
 	if (!LaunchVelocityOrImpulse.IsZero())
 	{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 		FChaosMoverLaunchInputs& LaunchInputs = Cmd->InputCollection.FindOrAddMutableDataByType<FChaosMoverLaunchInputs>();
 		LaunchInputs.LaunchVelocityOrImpulse = LaunchVelocityOrImpulse;
 		LaunchInputs.Mode = LaunchMode;
+#endif
 
 		LaunchVelocityOrImpulse = FVector::ZeroVector;
 	}
@@ -62,6 +72,7 @@ void UGunsmithChaosMoverComponent::ProduceInput(const int32 DeltaTimeMS, FMoverI
 		ClearQueuedMode();
 	}
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	// TODO @Harsha Making bWantsToCrouch sticky because the server is missing the one time crouch input.
 	// Investigate the input drops and after the fix, revert this change back to making it non-sticky.
 	bWantsToCrouch &= CanCrouch();
@@ -85,8 +96,10 @@ void UGunsmithChaosMoverComponent::ProduceInput(const int32 DeltaTimeMS, FMoverI
 
 		bOverrideMovementSettings = false;
 	}
+#endif
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 void UGunsmithChaosMoverComponent::DoQueueNextMode(FName DesiredModeName, bool bShouldReenter)
 {
 	Super::DoQueueNextMode(DesiredModeName, bShouldReenter);
@@ -102,6 +115,7 @@ void UGunsmithChaosMoverComponent::DoQueueNextMode(FName DesiredModeName, bool b
 
 	QueuedModeTransitionName = DesiredModeName;
 }
+#endif
 
 void UGunsmithChaosMoverComponent::Crouch()
 {
@@ -115,6 +129,7 @@ void UGunsmithChaosMoverComponent::UnCrouch()
 	bCrouchInputPending = true;
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 void UGunsmithChaosMoverComponent::Launch(const FVector& VelocityOrImpulse, EChaosMoverVelocityEffectMode Mode)
 {
 	LaunchVelocityOrImpulse = VelocityOrImpulse;
@@ -128,6 +143,7 @@ void UGunsmithChaosMoverComponent::OverrideMovementSettings(const FChaosMovement
 	AccelerationOverride = FMath::Max(Overrides.AccelerationOverride, 0.0f);
 	bOverrideMovementSettings = true;
 }
+#endif
 
 void UGunsmithChaosMoverComponent::CancelMovementSettingsOverrides(FName ModeName)
 {
@@ -146,29 +162,25 @@ void UGunsmithChaosMoverComponent::ProcessSimulationEvent(const FMoverSimulation
 {
 	Super::ProcessSimulationEvent(EventData);
 	
-	/*if (const FLandedEventData* LandedData = EventData.CastTo<FLandedEventData>())
-	{
-		OnLanded.Broadcast(LandedData->NewModeName, LandedData->HitResult);
-	}*/
-	if (const FJumpedEventData* JumpedData = EventData.CastTo<FJumpedEventData>())
-	{
-		OnJumped.Broadcast(JumpedData->JumpStartHeight);
-	}
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	if (const FStanceModifiedEventData* StanceModifiedEvent = EventData.CastTo<FStanceModifiedEventData>())
 	{
 		OnStanceModified(*StanceModifiedEvent);
 	}
+#endif
 }
 
 void UGunsmithChaosMoverComponent::SetAdditionalSimulationOutput(const FMoverDataCollection& Data)
 {
 	Super::SetAdditionalSimulationOutput(Data);
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	if (const FFloorResultData* FloorData = Data.FindDataByType<FFloorResultData>())
 	{
 		bFloorResultSet = true;
 		LatestFloorResult = FloorData->FloorResult;
 	}
+#endif
 }
 
 void UGunsmithChaosMoverComponent::ClearQueuedMode()
@@ -176,7 +188,9 @@ void UGunsmithChaosMoverComponent::ClearQueuedMode()
 	QueuedModeTransitionName = NAME_None;
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 void UGunsmithChaosMoverComponent::OnStanceModified(const FStanceModifiedEventData& EventData)
 {
 	OnStanceChanged.Broadcast(EventData.OldStance, EventData.NewStance);
 }
+#endif

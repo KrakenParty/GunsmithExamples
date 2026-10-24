@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.7",
+	"EngineAssociation": "5.8",
 	"Category": "Gameplay",
 	"Description": "An example project for the Gunsmith plugin",
 	"Modules": [
@@ -661,6 +661,10 @@
 			"TargetConfigurationAllowList": [
 				"Debug"
 			]
+		},
+		{
+			"Name": "ChaosMover",
+			"Enabled": true
 		}
 	]
 }

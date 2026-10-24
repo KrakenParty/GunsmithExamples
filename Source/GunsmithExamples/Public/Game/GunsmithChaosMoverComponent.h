@@ -3,9 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/GSMoverComponent.h"
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 #include "ChaosMover/ChaosMoverSimulationTypes.h"
 #include "ChaosMover/Character/ChaosCharacterMoverComponent.h"
-#include "Character/GSMoverComponent.h"
+#endif
+
 #include "GunsmithChaosMoverComponent.generated.h"
 
 /**
@@ -21,28 +25,24 @@ public:
 	
 	virtual bool TryGetFloorCheckHitResult(FHitResult& OutHitResult) const override;
 	virtual void ProduceInput(const int32 DeltaTimeMS, FMoverInputCmdContext* Cmd) override;
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	virtual void DoQueueNextMode(FName DesiredModeName, bool bShouldReenter=false) override;
+#endif
 
 	virtual void Crouch() override;
 	virtual void UnCrouch() override;
-	
-	// Broadcast when this actor lands on a valid surface.
-	UPROPERTY(BlueprintAssignable, Category = "Chaos Mover")
-	FChaosMover_OnLanded OnLanded;
-
-	// Broadcast when this actor jumps.
-	UPROPERTY(BlueprintAssignable, Category = "Chaos Mover")
-	FChaosMover_OnJumped OnJumped;
 
 	// Launch the character using either impulse or velocity
 	// Note: This will only trigger a launch if a launch transition is implemented on the current movement mode
-	UFUNCTION(BlueprintCallable, Category = "Chaos Mover")
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	void Launch(const FVector& VelocityOrImpulse, EChaosMoverVelocityEffectMode Mode = EChaosMoverVelocityEffectMode::AdditiveVelocity);
+#endif
 
 	// Override the movement mode settings on a mode
 	// If the name is not set it will apply to the current mode
-	UFUNCTION(BlueprintCallable, Category = "Chaos Mover")
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	void OverrideMovementSettings(const FChaosMovementSettingsOverrides Overrides);
+#endif
 
 	// Cancel overrides of movement mode settings
 	// If the name is not set it will apply to the current mode
@@ -55,7 +55,10 @@ protected:
 	virtual void SetAdditionalSimulationOutput(const FMoverDataCollection& Data) override;
 
 	void ClearQueuedMode();
+	
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	virtual void OnStanceModified(const FStanceModifiedEventData& EventData);
+#endif
 	
 	FName ModeToOverrideSettings = NAME_None;
 	float MaxSpeedOverride = 0.0f;
@@ -64,10 +67,13 @@ protected:
 	bool bCancelMovementOverrides = false;
 
 	bool bFloorResultSet = false;
-	FFloorCheckResult LatestFloorResult;
 
 	FVector LaunchVelocityOrImpulse = FVector::ZeroVector;
+	
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
 	EChaosMoverVelocityEffectMode LaunchMode = EChaosMoverVelocityEffectMode::AdditiveVelocity;
+	FFloorCheckResult LatestFloorResult;
+#endif
 
 	// Queued immediate mode transition, it will be transmitted to the PT next time ProduceInput is called
 	FName QueuedModeTransitionName = NAME_None;

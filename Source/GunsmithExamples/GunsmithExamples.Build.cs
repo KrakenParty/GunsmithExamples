@@ -16,10 +16,13 @@ public class GunsmithExamples : ModuleRules
 				"Gunsmith",
 				"GameplayTags", 
 				"Mover",
-				"GameplayAbilities", 
-				"ChaosMover",
+				"GameplayAbilities",
 			}
 		);
+		
+#if UE_5_7_OR_LATER
+       PublicDependencyModuleNames.Add("ChaosMover");
+#endif
 			
 		
 		PrivateDependencyModuleNames.AddRange(
