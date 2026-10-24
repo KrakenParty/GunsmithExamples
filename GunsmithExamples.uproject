@@ -661,10 +661,6 @@
 			"TargetConfigurationAllowList": [
 				"Debug"
 			]
-		},
-		{
-			"Name": "ChaosMover",
-			"Enabled": true
 		}
 	]
 }

@@ -298,9 +298,9 @@ private:
 #endif
 
 	UFUNCTION()
-	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& FrameState);
+	void OnAutoShootProjectileHitTarget(int32 Frame, const FHitResult& Hit, const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState);
 	UFUNCTION()
-	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& CurrentFrameData);
+	void OnAutoShootProjectileDestroyed(int32 Frame, bool bHitTarget, const FHitResult& HitResult, UGSProjectileState* ProjectileState, const FInstancedStruct& CurrentFrameData);
 
 	UFUNCTION()
 	void OnGrenadeEvent(int32 EventType, const FGSEquipData& EquippedWeapon, const FInstancedStruct& EventData);

@@ -123,7 +123,7 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileSpawned(UGSProjectileState* 
 }
 
 void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const FHitResult& Hit,
-	 const UGSProjectileState* ProjectileState, const TInstancedStruct<FGSProjectileFrameState>& FrameState)
+	 const UGSProjectileState* ProjectileState, const FInstancedStruct& FrameState)
 {
 	if (bExecutionEnded)
 	{
