@@ -528,7 +528,7 @@ void AGunsmithMoverCharacter::OnWeaponEvent_Implementation(int32 EventType, cons
 
 UGSShootingComponent* AGunsmithMoverCharacter::GetShootingComponent_Implementation(const FGameplayTag Tag) const
 {
-	if (Tag == TAG_GunsmithExamples_ShootingComponent_Grenade)
+	if (Tag.IsValid() && Tag == TAG_GunsmithExamples_ShootingComponent_Grenade)
 	{
 		return GrenadeComponent;
 	}
