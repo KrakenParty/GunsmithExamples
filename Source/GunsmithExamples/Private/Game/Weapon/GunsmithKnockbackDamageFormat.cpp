@@ -4,14 +4,12 @@
 #include "Game/Weapon/GunsmithKnockbackDamageFormat.h"
 
 #include "DrawDebugHelpers.h"
+#include "Engine/World.h"
 #include "GunsmithMoverCharacter.h"
 #include "Character/GSMoverComponent.h"
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "World/GSWorldStateSubsystem.h"
-
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
-#include "ChaosMover/Character/Effects/ChaosCharacterApplyVelocityEffect.h"
-#endif
+#include "Game/GunsmithChaosApplyVelocityEffect.h"
 
 
 void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, const FVector& DamageLocation, AActor* HitActor,
@@ -71,13 +69,12 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 		{
 			if (bUsesChaos)
 			{
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 6
-				TSharedPtr<FChaosCharacterApplyVelocityEffect> ChaosVelocityEffect = MakeShared<FChaosCharacterApplyVelocityEffect>();
-				ChaosVelocityEffect->VelocityOrImpulseToApply = HitVector.GetSafeNormal() * LaunchStrength;
-				ChaosVelocityEffect->Mode = EChaosMoverVelocityEffectMode::AdditiveVelocity;
+				TSharedPtr<FGunsmithChaosApplyVelocityEffect> ChaosVelocityEffect = MakeShared<FGunsmithChaosApplyVelocityEffect>();
+				ChaosVelocityEffect->VelocityToApply = HitVector.GetSafeNormal() * LaunchStrength;
+				ChaosVelocityEffect->bAdditiveVelocity = true;
+				ChaosVelocityEffect->ForceMovementMode = DefaultModeNames::Falling;
 
 				MoverComponent->QueueInstantMovementEffect(ChaosVelocityEffect);
-#endif
 			}
 			else
 			{
