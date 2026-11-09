@@ -3,7 +3,6 @@
 #include "Game/Weapon/Attachment/GSExecution_SpawnProjectileOnHit.h"
 
 #include "World/GSWorldStateSubsystem.h"
-#include "NetworkPredictionWorldManager.h"
 #include "Engine/World.h"
 #include "Performance/GSObjectPoolSubsystem.h"
 #include "Weapon/Emitter/Output/Projectile/GSProjectileDataAsset.h"
@@ -145,7 +144,6 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 	}
 
 	UWorld* World = GetWorld();
-	UNetworkPredictionWorldManager* NetworkPredictionWorldManager = World->GetSubsystem<UNetworkPredictionWorldManager>();
 	UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>();
 	if (ensure(WorldStateSubsystem))
 	{
@@ -155,11 +153,11 @@ void UGSExecution_SpawnProjectileOnHit::OnProjectileHitTarget(int32 Frame, const
 		float InterpolatedPercentage = 0.0f;
 		const FGSProjectileFrameState& ProjectileFrameState = FrameState.Get<FGSProjectileFrameState>();
 
-		if (NetworkPredictionWorldManager && !World->IsNetMode(NM_DedicatedServer))
+		if (!World->IsNetMode(NM_DedicatedServer))
 		{
-			const FFixedTickState& FixedTickState = NetworkPredictionWorldManager->GetFixedTickState();
-			InterpolatedFrame = FixedTickState.Interpolation.ToFrame >= 0 ? FixedTickState.Interpolation.ToFrame - 1 : FixedTickState.PendingFrame;
-			InterpolatedPercentage = FixedTickState.Interpolation.PCT;	
+			const FGSFrameIndex& FrameIndex = WorldStateSubsystem->GetCurrentSimulationFrameIndex();
+			InterpolatedFrame = FrameIndex.InterpolatedFrame;
+			InterpolatedPercentage = FrameIndex.InterpolatedRemainder;
 		}
 
 		const int32 RandomSeed = ProjectileFrameState.ProjectileID + ProjectileFrameState.NumBounces + GetExecutionUniqueID();

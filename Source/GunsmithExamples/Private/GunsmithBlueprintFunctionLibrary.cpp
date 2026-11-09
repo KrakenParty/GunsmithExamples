@@ -4,10 +4,13 @@
 
 #include "MoverComponent.h"
 #include "NetworkPredictionWorldManager.h"
+#include "PBDRigidsSolver.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/GSMoverComponent.h"
 #include "Engine/DemoNetDriver.h"
 #include "GameFramework/PlayerController.h"
+#include "Physics/NetworkPhysicsComponent.h"
+#include "World/GSWorldStateSubsystem.h"
 
 ULocalPlayer* UGunsmithBlueprintFunctionLibrary::GetLocalPlayerFromPlayerController(APlayerController* PlayerController)
 {
@@ -21,9 +24,27 @@ ULocalPlayer* UGunsmithBlueprintFunctionLibrary::GetLocalPlayerFromPlayerControl
 
 float UGunsmithBlueprintFunctionLibrary::GetTimeSinceSimulationStarted(UObject* WorldContextObject)
 {
-	if (!WorldContextObject)
+	if (!IsValid(WorldContextObject))
 	{
 		return 0.0f;
+	}
+	
+	UWorld* World = WorldContextObject->GetWorld();
+	
+	if (!World)
+	{
+		return 0.0f;
+	}
+	
+	const UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>();
+	if (WorldStateSubsystem && WorldStateSubsystem->GetUsesAsyncPhysics())
+	{
+		const FPhysScene* PhysScene = World->GetPhysicsScene();
+		const Chaos::FPhysicsSolver* Solver = PhysScene ? PhysScene->GetSolver() : nullptr;
+		if (Solver && Solver->IsUsingAsyncResults())
+		{
+			return static_cast<float>(UE::NetworkPhysicsUtils::GetUpcomingServerFrame_External(World) * Solver->GetAsyncDeltaTime());
+		}
 	}
 	
 	if (UNetworkPredictionWorldManager* WorldManager = WorldContextObject->GetWorld()->GetSubsystem<UNetworkPredictionWorldManager>())

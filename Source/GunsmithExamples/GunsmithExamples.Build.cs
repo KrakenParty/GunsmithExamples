@@ -44,7 +44,8 @@ public class GunsmithExamples : ModuleRules
 				"ModelViewViewModel", 
 				"Niagara",
 				"PhysicsCore",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"Chaos"
 			}
 		);
 
