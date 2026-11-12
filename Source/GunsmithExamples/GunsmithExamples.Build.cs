@@ -14,7 +14,8 @@ public class GunsmithExamples : ModuleRules
 			{
 				"Core",
 				"Gunsmith",
-				"GameplayTags", 
+				"GunsmithChaos",
+				"GameplayTags",
 				"Mover",
 				"GameplayAbilities",
 			}

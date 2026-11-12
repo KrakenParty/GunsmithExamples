@@ -12,6 +12,7 @@
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "World/GSWorldStateSubsystem.h"
 #include "Game/GunsmithChaosApplyVelocityEffect.h"
+#include "GSChaosGameplayLibrary.h"
 
 void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, const FVector& DamageLocation, AActor* HitActor,
                                                   const FGSRadialDamageDealt& DamageInfo, int32 Frame, AActor* Instigator, AController* InstigatingController,
@@ -58,14 +59,7 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 	
 	if (PhysicsComponent)
 	{
-		AsyncTask(ENamedThreads::GameThread, [HitVector, LaunchStrength, WeakPhysicsComponent = TWeakObjectPtr<UPrimitiveComponent>(PhysicsComponent)]()
-		{
-			if (UPrimitiveComponent* Component = WeakPhysicsComponent.Get())
-			{
-				// Use a velocity change so that LaunchPower has the same meaning as it does for characters, regardless of mass
-				Component->AddImpulse(HitVector.GetSafeNormal() * LaunchStrength, NAME_None, true);
-			}
-		});
+		UGSChaosGameplayLibrary::AddImpulse_PhysicsThread(PhysicsComponent, HitVector.GetSafeNormal() * LaunchStrength, NAME_None, true);
 
 		return;
 	}
