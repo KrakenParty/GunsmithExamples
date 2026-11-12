@@ -2,15 +2,14 @@
 
 #include "GunsmithBlueprintFunctionLibrary.h"
 
-#include "MoverComponent.h"
 #include "NetworkPredictionWorldManager.h"
 #include "PBDRigidsSolver.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/GSMoverComponent.h"
 #include "Engine/DemoNetDriver.h"
 #include "GameFramework/PlayerController.h"
 #include "Physics/NetworkPhysicsComponent.h"
 #include "World/GSWorldStateSubsystem.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 ULocalPlayer* UGunsmithBlueprintFunctionLibrary::GetLocalPlayerFromPlayerController(APlayerController* PlayerController)
 {
@@ -36,6 +35,7 @@ float UGunsmithBlueprintFunctionLibrary::GetTimeSinceSimulationStarted(UObject* 
 		return 0.0f;
 	}
 	
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7
 	const UGSWorldStateSubsystem* WorldStateSubsystem = World->GetSubsystem<UGSWorldStateSubsystem>();
 	if (WorldStateSubsystem && WorldStateSubsystem->GetUsesAsyncPhysics())
 	{
@@ -46,6 +46,7 @@ float UGunsmithBlueprintFunctionLibrary::GetTimeSinceSimulationStarted(UObject* 
 			return static_cast<float>(UE::NetworkPhysicsUtils::GetUpcomingServerFrame_External(World) * Solver->GetAsyncDeltaTime());
 		}
 	}
+#endif
 	
 	if (UNetworkPredictionWorldManager* WorldManager = WorldContextObject->GetWorld()->GetSubsystem<UNetworkPredictionWorldManager>())
 	{
