@@ -1,8 +1,7 @@
 set EngineVersion=%1
-set Password=%~2
-set OutputRoot=%~3
-set BuildID=%4
-set EnginePath=%~5
+set OutputRoot=%~2
+set BuildID=%3
+set EnginePath=%~4
 set PluginPath=%CD%\Plugins\Gunsmith
 set ArchiveRoot=%OutputRoot%\%BuildID%
 set ArchivePath=%ArchiveRoot%\%EngineVersion%.zip
@@ -17,7 +16,7 @@ cmd /C ""%EnginePath%\Engine\Build\BatchFiles\RunUAT.bat" BuildGraph -Script=%CD
 if not exist "%ArchiveRoot%" mkdir "%ArchiveRoot%"
 
 del "%ArchivePath%"
-7z a "%ArchivePath%" %PluginPath%\Config %PluginPath%\Content %PluginPath%\Source %PluginPath%\Gunsmith.uplugin -p%Password%
+7z a "%ArchivePath%" %PluginPath%\Config %PluginPath%\Content %PluginPath%\Source %PluginPath%\Gunsmith.uplugin
 
 git reset --hard
 cmd Plugins/Gunsmith
