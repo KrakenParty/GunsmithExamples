@@ -1,0 +1,8 @@
+# Regexes for editor startup log lines that ValidatePlugin.ps1 should NOT report.
+# One pattern per line, matched against "Category: Severity: Message". Lines starting with # are comments.
+#
+# Use this for engine noise that also appears in a project without the plugin, e.g.:
+#   ^LogAudio: Warning: .*
+#   ^LogDerivedDataCache: Warning: .*Shared.*
+#
+# Keep patterns specific so genuine plugin problems are still caught.

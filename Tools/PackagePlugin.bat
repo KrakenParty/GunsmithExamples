@@ -19,5 +19,7 @@ del "%ArchivePath%"
 7z a "%ArchivePath%" %PluginPath%\Config %PluginPath%\Content %PluginPath%\Source %PluginPath%\Gunsmith.uplugin
 
 git reset --hard
-cmd Plugins/Gunsmith
+git clean -fd
+cd Plugins/Gunsmith
 git reset --hard
+git clean -fd
