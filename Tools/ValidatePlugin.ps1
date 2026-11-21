@@ -120,7 +120,8 @@ New-Item -ItemType Directory -Force -Path $ProjectDir, $PluginDir, $LogDir | Out
 
 $SourceDir = Join-Path $ProjectDir "Source"
 $ModuleDir = Join-Path $SourceDir $ProjectName
-New-Item -ItemType Directory -Force -Path $ModuleDir, (Join-Path $ProjectDir "Config") | Out-Null
+# Content is created (empty) so the editor's directory watcher doesn't warn about it missing
+New-Item -ItemType Directory -Force -Path $ModuleDir, (Join-Path $ProjectDir "Config"), (Join-Path $ProjectDir "Content") | Out-Null
 
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 function Write-ProjectFile([string]$Path, [string]$Content) {

@@ -6,3 +6,8 @@
 #   ^LogDerivedDataCache: Warning: .*Shared.*
 #
 # Keep patterns specific so genuine plugin problems are still caught.
+
+# Build agents run as a service with no interactive desktop, so IME setup always fails
+^LogWindowsTextInputMethodSystem: Warning: Initialization failed while creating the IMM context\.
+# The Water plugin (pulled in by plugin dependencies) wants a project-level collision profile the empty project doesn't define
+^LoadErrors: Error: Collision Profile settings do not include an entry for the Water Body Collision profile
