@@ -11,3 +11,5 @@
 ^LogWindowsTextInputMethodSystem: Warning: Initialization failed while creating the IMM context\.
 # The Water plugin (pulled in by plugin dependencies) wants a project-level collision profile the empty project doesn't define
 ^LoadErrors: Error: Collision Profile settings do not include an entry for the Water Body Collision profile
+# Engine EditorPerformance plugin inserts its status bar section before 'Compile' before the level editor has added it (seen in 5.7)
+^LogToolMenus: Warning: Menu section not found: 'Compile' for insert: 'EditorPerf'
