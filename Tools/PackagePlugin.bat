@@ -1,3 +1,4 @@
+setlocal
 set EngineVersion=%1
 set OutputRoot=%~2
 set BuildID=%3
@@ -20,6 +21,8 @@ del "%ArchivePath%"
 
 git reset --hard
 git clean -fd
-cd Plugins/Gunsmith
+:: pushd/popd so the caller's working directory is unchanged (TeamCity calls ValidatePlugin.bat next)
+pushd Plugins\Gunsmith
 git reset --hard
 git clean -fd
+popd
