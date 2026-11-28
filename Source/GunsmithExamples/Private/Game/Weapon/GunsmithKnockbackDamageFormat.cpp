@@ -59,7 +59,8 @@ void UGunsmithKnockbackDamageFormat::DamageTarget(const FHitResult& InitialHit, 
 	
 	if (PhysicsComponent)
 	{
-		UGSChaosGameplayLibrary::AddImpulse_PhysicsThread(PhysicsComponent, HitVector.GetSafeNormal() * LaunchStrength, NAME_None, true);
+		// Applied on the damage frame so the authority pushes the body on the same frame as the client that predicted the hit
+		UGSChaosGameplayLibrary::AddImpulse_PhysicsThread(PhysicsComponent, HitVector.GetSafeNormal() * LaunchStrength, NAME_None, true, Frame);
 
 		return;
 	}
